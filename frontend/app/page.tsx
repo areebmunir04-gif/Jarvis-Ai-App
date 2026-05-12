@@ -49,16 +49,21 @@ window.speechSynthesis.speak(
   window.speechSynthesis.cancel();
 
   const SpeechRecognition =
-  window.SpeechRecognition ||
-  window.webkitSpeechRecognition;
+    (window as any)
+      .SpeechRecognition ||
+    (window as any)
+      .webkitSpeechRecognition;
 
-const recognition =
-  new SpeechRecognition();
+  const recognition =
+    new SpeechRecognition();
 
-recognition.lang = "en-US";
+  recognition.lang = "en-US";
 
-recognition.continuous = true;
- {
+  recognition.continuous = true;
+
+  recognition.onresult = async (
+    event
+  ) => {
 
     const transcript =
       event.results[
@@ -66,6 +71,49 @@ recognition.continuous = true;
       ][0].transcript.toLowerCase();
 
     console.log(transcript);
+
+    if (
+      transcript.includes("stop")
+    ) {
+
+      window.speechSynthesis.cancel();
+
+      setReply("Stopped.");
+
+      return;
+    }
+
+    const cleanedMessage =
+      transcript.replace(
+        "jarvis",
+        ""
+      );
+
+    setMessage(cleanedMessage);
+
+    try {
+
+      const res =
+        await axios.post(
+          "http://localhost:5000/chat",
+          {
+            message:
+              cleanedMessage,
+          }
+        );
+
+      setReply(
+        res.data.reply
+      );
+
+    } catch (error) {
+
+      console.log(error);
+    }
+  };
+
+  recognition.start();
+};
 
    if (
   transcript.includes("stop")
