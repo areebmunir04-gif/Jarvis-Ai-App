@@ -48,17 +48,17 @@ window.speechSynthesis.speak(
 
   window.speechSynthesis.cancel();
 
-  const recognition =
-    new (window.SpeechRecognition ||
-      window.webkitSpeechRecognition)();
+  const SpeechRecognition =
+  window.SpeechRecognition ||
+  window.webkitSpeechRecognition;
 
-  recognition.lang = "en-US";
+const recognition =
+  new SpeechRecognition();
 
-  recognition.continuous = true;
+recognition.lang = "en-US";
 
-  recognition.onresult = async (
-    event
-  ) => {
+recognition.continuous = true;
+ {
 
     const transcript =
       event.results[
