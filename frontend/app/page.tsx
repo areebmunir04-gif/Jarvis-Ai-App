@@ -4,38 +4,55 @@ import { useState } from "react";
 import axios from "axios";
 
 export default function Home() {
-  const [message, setMessage] = useState("");
-  const [reply, setReply] = useState("");
+
+  const [message, setMessage] =
+    useState("");
+
+  const [reply, setReply] =
+    useState("");
 
   const sendMessage = async () => {
-    try {window.speechSynthesis.cancel();
-      const res = await axios.post(
-        "http://localhost:5000/chat",
-        {
-          message,
-        }
+
+    try {
+
+      window.speechSynthesis.cancel();
+
+      const res =
+        await axios.post(
+          "http://localhost:5000/chat",
+          {
+            message,
+          }
+        );
+
+      setReply(
+        res.data.reply
       );
 
-      setReply(res.data.reply);
+      const speech =
+        new SpeechSynthesisUtterance(
+          res.data.reply
+        );
 
-const speech =
-  new SpeechSynthesisUtterance(
-    res.data.reply
-  );
+      if (
+        /[अ-ह]/.test(
+          res.data.reply
+        )
+      ) {
 
-if (
-  /[अ-ह]/.test(res.data.reply)
-) {
-  speech.lang = "hi-IN";
-} else {
-  speech.lang = "en-US";
-}
+        speech.lang = "hi-IN";
 
-window.speechSynthesis.speak(
-  speech
-);
+      } else {
+
+        speech.lang = "en-US";
+      }
+
+      window.speechSynthesis.speak(
+        speech
+      );
 
     } catch (error) {
+
       console.log(error);
 
       setReply(
@@ -46,87 +63,49 @@ window.speechSynthesis.speak(
 
   const startListening = () => {
 
-  window.speechSynthesis.cancel();
+    window.speechSynthesis.cancel();
 
-  const SpeechRecognition =
-    (window as any)
-      .SpeechRecognition ||
-    (window as any)
-      .webkitSpeechRecognition;
+    const SpeechRecognition =
+      (window as any)
+        .SpeechRecognition ||
+      (window as any)
+        .webkitSpeechRecognition;
 
-  const recognition =
-    new SpeechRecognition();
+    const recognition =
+      new SpeechRecognition();
 
-  recognition.lang = "en-US";
+    recognition.lang =
+      "en-US";
 
-  recognition.continuous = true;
+    recognition.continuous =
+      true;
 
-  recognition.onresult = async (
-    event
-  ) => {
+    recognition.onresult =
+      async (event: any) => {
 
-    const transcript =
-      event.results[
-        event.results.length - 1
-      ][0].transcript.toLowerCase();
+      const transcript =
+        event.results[
+          event.results.length - 1
+        ][0].transcript.toLowerCase();
 
-    console.log(transcript);
-
-    if (
-      transcript.includes("stop")
-    ) {
-
-      window.speechSynthesis.cancel();
-
-      setReply("Stopped.");
-
-      return;
-    }
-
-    const cleanedMessage =
-      transcript.replace(
-        "jarvis",
-        ""
+      console.log(
+        transcript
       );
 
-    setMessage(cleanedMessage);
+      if (
+        transcript.includes(
+          "stop"
+        )
+      ) {
 
-    try {
+        window.speechSynthesis.cancel();
 
-      const res =
-        await axios.post(
-          "http://localhost:5000/chat",
-          {
-            message:
-              cleanedMessage,
-          }
+        setReply(
+          "Stopped."
         );
 
-      setReply(
-        res.data.reply
-      );
-
-    } catch (error) {
-
-      console.log(error);
-    }
-  };
-
-  recognition.start();
-};
-
-   if (
-  transcript.includes("stop")
-) {
-
-  window.speechSynthesis.cancel();
-
-  setReply("Stopped.");
-
-  return;
-}
-
-     {
+        return;
+      }
 
       const cleanedMessage =
         transcript.replace(
@@ -134,7 +113,9 @@ window.speechSynthesis.speak(
           ""
         );
 
-      setMessage(cleanedMessage);
+      setMessage(
+        cleanedMessage
+      );
 
       try {
 
@@ -156,7 +137,8 @@ window.speechSynthesis.speak(
             res.data.reply
           );
 
-        speech.lang = "hi-IN";
+        speech.lang =
+          "en-US";
 
         window.speechSynthesis.speak(
           speech
@@ -165,16 +147,16 @@ window.speechSynthesis.speak(
       } catch (error) {
 
         console.log(error);
-
       }
-    }
+    };
+
+    recognition.start();
   };
 
-  recognition.start();
-};
-
   return (
+
     <main className="min-h-screen bg-black text-cyan-400 flex flex-col items-center justify-center p-10">
+
       <h1 className="text-5xl font-bold mb-10">
         JARVIS AI
       </h1>
@@ -184,14 +166,19 @@ window.speechSynthesis.speak(
         placeholder="Talk to Jarvis..."
         value={message}
         onChange={(e) =>
-          setMessage(e.target.value)
+          setMessage(
+            e.target.value
+          )
         }
         onKeyDown={(e) => {
-  if (e.key === "Enter") {
-    sendMessage();
-  }
-}}
-        
+
+          if (
+            e.key === "Enter"
+          ) {
+
+            sendMessage();
+          }
+        }}
         className="w-full max-w-xl p-4 rounded-xl bg-gray-900 border border-cyan-500"
       />
 
@@ -212,6 +199,7 @@ window.speechSynthesis.speak(
       <div className="mt-10 max-w-2xl text-xl">
         {reply}
       </div>
+
     </main>
   );
 }
