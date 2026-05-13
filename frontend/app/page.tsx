@@ -19,7 +19,7 @@ export default function Home() {
 
       const res =
         await axios.post(
-          "http://localhost:5000/chat",
+          "https://jarvis-ai-app-olit.onrender.com/chat",
           {
             message,
           }
