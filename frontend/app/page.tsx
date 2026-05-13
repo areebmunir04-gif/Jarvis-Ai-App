@@ -132,26 +132,14 @@ export default function Home() {
           res.data.reply
         );
 
-        const speech =
-          new SpeechSynthesisUtterance(
-            res.data.reply
-          );
+        const SpeechRecognition =
+  (window as any)
+    .SpeechRecognition ||
+  (window as any)
+    .webkitSpeechRecognition;
 
-        speech.lang =
-          "en-US";
-
-        window.speechSynthesis.speak(
-          speech
-        );
-
-      } catch (error) {
-
-        console.log(error);
-      }
-    };
-
-    recognition.start();
-  };
+const recognition =
+  new SpeechRecognition();
 
   return (
 
