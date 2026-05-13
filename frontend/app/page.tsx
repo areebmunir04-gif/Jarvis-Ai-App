@@ -34,18 +34,7 @@ export default function Home() {
           res.data.reply
         );
 
-      if (
-        /[अ-ह]/.test(
-          res.data.reply
-        )
-      ) {
-
-        speech.lang = "hi-IN";
-
-      } else {
-
-        speech.lang = "en-US";
-      }
+      speech.lang = "en-US";
 
       window.speechSynthesis.speak(
         speech
@@ -132,14 +121,26 @@ export default function Home() {
           res.data.reply
         );
 
-        const SpeechRecognition =
-  (window as any)
-    .SpeechRecognition ||
-  (window as any)
-    .webkitSpeechRecognition;
+        const speech =
+          new SpeechSynthesisUtterance(
+            res.data.reply
+          );
 
-const recognition =
-  new SpeechRecognition();
+        speech.lang =
+          "en-US";
+
+        window.speechSynthesis.speak(
+          speech
+        );
+
+      } catch (error) {
+
+        console.log(error);
+      }
+    };
+
+    recognition.start();
+  };
 
   return (
 
