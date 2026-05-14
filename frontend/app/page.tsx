@@ -16,7 +16,7 @@ export default function Home() {
     try {
 
       const res = await axios.post(
-        "https://jarvis-ai-app-olit.onrender.com/chat",
+        "https://jarvis-agent-9bnt.onrender.com/chat",
         {
           message,
         }
