@@ -5,18 +5,18 @@ import axios from "axios";
 
 export default function Home() {
 
-  const [message, setMessage] = useState("");
-  const [reply, setReply] = useState("");
+  const [message, setMessage] =
+    useState("");
 
-  const API =
-    "https://jarvis-ai-app-olit.onrender.com/chat";
+  const [reply, setReply] =
+    useState("");
 
   const sendMessage = async () => {
 
     try {
 
       const res = await axios.post(
-        API,
+        "https://jarvis-ai-app-olit.onrender.com/chat",
         {
           message,
         }
@@ -57,7 +57,7 @@ export default function Home() {
         Send
       </button>
 
-      <div className="mt-10 max-w-2xl text-xl">
+      <div className="mt-10 text-xl">
         {reply}
       </div>
 
