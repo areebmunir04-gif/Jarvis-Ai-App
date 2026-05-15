@@ -1,20 +1,38 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import axios from "axios";
 import { motion } from "framer-motion";
-import { FaMicrophone } from "react-icons/fa";
+import {
+  FaMicrophone,
+  FaRobot,
+  FaUser,
+} from "react-icons/fa";
 
 export default function Home() {
 
   const [message, setMessage] =
     useState("");
 
-  const [reply, setReply] =
-    useState("");
-
   const [loading, setLoading] =
     useState(false);
+
+  const [messages, setMessages] =
+    useState<any[]>([]);
+
+  const messagesEndRef =
+    useRef<HTMLDivElement>(
+      null
+    );
+
+  useEffect(() => {
+
+    messagesEndRef.current
+      ?.scrollIntoView({
+        behavior: "smooth",
+      });
+
+  }, [messages]);
 
   const sendMessage = async (
     customMessage: string = ""
@@ -24,6 +42,18 @@ export default function Home() {
       customMessage || message;
 
     if (!finalMessage) return;
+
+    const userMessage = {
+      role: "user",
+      content: finalMessage,
+    };
+
+    setMessages((prev) => [
+      ...prev,
+      userMessage,
+    ]);
+
+    setMessage("");
 
     try {
 
@@ -38,9 +68,16 @@ export default function Home() {
           }
         );
 
-      setReply(
-        res.data.reply
-      );
+      const aiMessage = {
+        role: "assistant",
+        content:
+          res.data.reply,
+      };
+
+      setMessages((prev) => [
+        ...prev,
+        aiMessage,
+      ]);
 
       const speech =
         new SpeechSynthesisUtterance(
@@ -57,9 +94,14 @@ export default function Home() {
 
       console.log(error);
 
-      setReply(
-        "Connection failed"
-      );
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content:
+            "Connection failed",
+        },
+      ]);
 
     } finally {
 
@@ -111,118 +153,221 @@ export default function Home() {
 
   return (
 
-    <main className="min-h-screen bg-black text-white flex items-center justify-center overflow-hidden relative">
+    <main className="flex h-screen bg-[#0f0f0f] text-white overflow-hidden">
 
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,#00ffff22,transparent_70%)]" />
+      {/* SIDEBAR */}
 
-      <motion.div
+      <aside className="w-72 bg-[#171717] border-r border-white/10 p-5 hidden md:flex flex-col">
 
-        initial={{
-          opacity: 0,
-          scale: 0.8,
-        }}
-
-        animate={{
-          opacity: 1,
-          scale: 1,
-        }}
-
-        className="relative z-10 w-full max-w-2xl p-10 rounded-3xl border border-cyan-500 bg-white/5 backdrop-blur-xl shadow-[0_0_40px_#00ffff55]"
-      >
-
-        <motion.h1
-
-          animate={{
-            opacity: [0.5, 1, 0.5],
-          }}
-
-          transition={{
-            repeat: Infinity,
-            duration: 2,
-          }}
-
-          className="text-6xl font-bold text-center text-cyan-400 mb-10"
-        >
+        <h1 className="text-3xl font-bold text-cyan-400 mb-8">
           JARVIS AI
-        </motion.h1>
+        </h1>
 
-        <div className="flex gap-3">
+        <button className="bg-cyan-500 hover:bg-cyan-400 transition-all text-black font-bold py-3 rounded-xl">
+          + New Chat
+        </button>
 
-          <input
+        <div className="mt-10 text-sm text-gray-400">
+          Premium AI Assistant
+        </div>
 
-            type="text"
+      </aside>
 
-            placeholder="Ask Jarvis anything..."
+      {/* MAIN CHAT */}
 
-            value={message}
+      <section className="flex-1 flex flex-col">
 
-            onChange={(e) =>
-              setMessage(
-                e.target.value
-              )
-            }
+        {/* TOP BAR */}
 
-            onKeyDown={(e) => {
+        <div className="h-16 border-b border-white/10 flex items-center px-6 text-xl font-semibold bg-[#111111]">
+          ChatGPT Style Jarvis
+        </div>
 
-              if (
-                e.key === "Enter"
-              ) {
+        {/* CHAT AREA */}
 
-                sendMessage("");
-              }
-            }}
+        <div className="flex-1 overflow-y-auto px-4 py-6 space-y-6">
 
-            className="flex-1 p-4 rounded-2xl bg-black/40 border border-cyan-500 outline-none text-cyan-300"
-          />
+          {messages.length === 0 && (
 
-          <button
+            <div className="h-full flex flex-col items-center justify-center text-center">
 
-            onClick={
-              startListening
-            }
+              <motion.h1
 
-            className="bg-cyan-500 hover:bg-cyan-400 transition-all p-5 rounded-2xl text-black text-xl"
-          >
+                initial={{
+                  opacity: 0,
+                  y: 20,
+                }}
 
-            <FaMicrophone />
+                animate={{
+                  opacity: 1,
+                  y: 0,
+                }}
 
-          </button>
+                className="text-6xl font-bold text-cyan-400"
+              >
+                JARVIS AI
+              </motion.h1>
+
+              <p className="mt-5 text-gray-400 text-lg">
+                Your futuristic AI assistant
+              </p>
+
+            </div>
+          )}
+
+          {messages.map(
+            (
+              msg,
+              index
+            ) => (
+
+              <motion.div
+
+                key={index}
+
+                initial={{
+                  opacity: 0,
+                  y: 10,
+                }}
+
+                animate={{
+                  opacity: 1,
+                  y: 0,
+                }}
+
+                className={`flex gap-4 ${
+                  msg.role ===
+                  "user"
+                    ? "justify-end"
+                    : "justify-start"
+                }`}
+              >
+
+                {msg.role ===
+                  "assistant" && (
+
+                  <div className="w-10 h-10 rounded-full bg-cyan-500 flex items-center justify-center text-black">
+                    <FaRobot />
+                  </div>
+                )}
+
+                <div
+                  className={`max-w-[75%] p-4 rounded-2xl text-lg ${
+                    msg.role ===
+                    "user"
+                      ? "bg-cyan-500 text-black"
+                      : "bg-[#1f1f1f] border border-white/10"
+                  }`}
+                >
+                  {msg.content}
+                </div>
+
+                {msg.role ===
+                  "user" && (
+
+                  <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-black">
+                    <FaUser />
+                  </div>
+                )}
+
+              </motion.div>
+            )
+          )}
+
+          {loading && (
+
+            <motion.div
+
+              initial={{
+                opacity: 0,
+              }}
+
+              animate={{
+                opacity: 1,
+              }}
+
+              className="flex items-center gap-3"
+            >
+
+              <div className="w-10 h-10 rounded-full bg-cyan-500 flex items-center justify-center text-black">
+                <FaRobot />
+              </div>
+
+              <div className="bg-[#1f1f1f] border border-white/10 px-5 py-4 rounded-2xl">
+                Jarvis is thinking...
+              </div>
+
+            </motion.div>
+          )}
+
+          <div ref={messagesEndRef} />
 
         </div>
 
-        <button
+        {/* INPUT AREA */}
 
-          onClick={() =>
-            sendMessage("")
-          }
+        <div className="border-t border-white/10 p-4 bg-[#111111]">
 
-          className="w-full mt-5 bg-cyan-500 hover:bg-cyan-400 transition-all text-black font-bold py-4 rounded-2xl"
-        >
+          <div className="flex gap-3">
 
-          SEND
+            <input
 
-        </button>
+              type="text"
 
-        <motion.div
+              placeholder="Message Jarvis..."
 
-          initial={{
-            opacity: 0,
-          }}
+              value={message}
 
-          animate={{
-            opacity: 1,
-          }}
+              onChange={(e) =>
+                setMessage(
+                  e.target.value
+                )
+              }
 
-          className="mt-10 p-6 rounded-2xl bg-black/40 border border-cyan-500 min-h-[120px] text-cyan-300 text-lg"
-        >
+              onKeyDown={(e) => {
 
-          {loading
-            ? "Jarvis thinking..."
-            : reply}
+                if (
+                  e.key === "Enter"
+                ) {
 
-        </motion.div>
+                  sendMessage("");
+                }
+              }}
 
-      </motion.div>
+              className="flex-1 bg-[#1f1f1f] border border-white/10 rounded-2xl px-5 py-4 outline-none text-white"
+            />
+
+            <button
+
+              onClick={
+                startListening
+              }
+
+              className="bg-cyan-500 hover:bg-cyan-400 transition-all text-black px-5 rounded-2xl text-xl"
+            >
+
+              <FaMicrophone />
+
+            </button>
+
+            <button
+
+              onClick={() =>
+                sendMessage("")
+              }
+
+              className="bg-cyan-500 hover:bg-cyan-400 transition-all text-black font-bold px-8 rounded-2xl"
+            >
+
+              Send
+
+            </button>
+
+          </div>
+
+        </div>
+
+      </section>
 
     </main>
   );
