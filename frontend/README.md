@@ -14,7 +14,7 @@ pnpm dev
 bun dev
 ```
 
-Open [https://jarvis-agent-9bnt.onrender.com/chat](https://jarvis-agent-9bnt.onrender.com/chat) with your browser to see the result.
+Open [https://jarvis-ai-app-1.onrender.com/chat](https://jarvis-ai-app-1.onrender.com/chat) with your browser to see the result.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 

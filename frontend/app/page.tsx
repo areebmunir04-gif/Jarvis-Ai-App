@@ -17,7 +17,7 @@ export default function Home() {
       window.speechSynthesis.cancel();
 
       const res = await axios.post(
-        "https://jarvis-ai-app-olit.onrender.com/chat", // <--- APNA NAYA RENDER LINK YAHA CHECK KAR LEIN
+        "https://jarvis-ai-app-1.onrender.com/chat", // <--- APNA NAYA RENDER LINK YAHA CHECK KAR LEIN
         {
           message: finalMessage,
         }
