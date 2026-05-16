@@ -1,180 +1,338 @@
 require("dotenv").config();
 
-const express = require("express");
-const cors = require("cors");
-const axios = require("axios");
-const Groq = require("groq-sdk");
+const express =
+  require("express");
 
-const app = express();
+const cors =
+  require("cors");
+
+const axios =
+  require("axios");
+
+const { exec } =
+  require("child_process");
+
+const Groq =
+  require("groq-sdk");
+
+const app =
+  express();
 
 app.use(
   cors({
     origin: "*",
-    methods: ["GET", "POST"],
-    allowedHeaders: ["Content-Type"],
+    methods: [
+      "GET",
+      "POST",
+    ],
+    allowedHeaders: [
+      "Content-Type",
+    ],
   })
 );
 
-app.use(express.json());
+app.use(
+  express.json()
+);
 
-const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY,
-});
+const groq =
+  new Groq({
 
-// TEST ROUTE
-app.get("/", (req, res) => {
+    apiKey:
+      process.env
+        .GROQ_API_KEY,
+  });
 
-  res.send("Jarvis backend running");
+// HOME ROUTE
 
-});
+app.get(
+  "/",
+  (req, res) => {
+
+    res.send(
+      "Jarvis backend running"
+    );
+  }
+);
 
 // CHAT ROUTE
-app.post("/chat", async (req, res) => {
 
-  try {
+app.post(
+  "/chat",
 
-    const { message } = req.body;
-    
+  async (
+    req,
+    res
+  ) => {
 
-// IMAGE GENERATION
-
-if (
-
-  lowerMessage.includes(
-    "generate"
-  ) ||
-
-  lowerMessage.includes(
-    "create image"
-  ) ||
-
-  lowerMessage.includes(
-    "make image"
-  )
-
-) {
-
-  const prompt =
-
-    message
-
-      .replace(
-        "generate",
-        ""
-      )
-
-      .replace(
-        "create image",
-        ""
-      )
-
-      .replace(
-        "make image",
-        ""
-      );
-
-  const imageUrl =
-
-    `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}`;
-
-  return res.json({
-
-    reply:
-      `Generated image for: ${prompt}`,
-
-    image:
-      imageUrl,
-  });
-}
-
-    let webData = "";
-
-    // TAVILY SEARCH
     try {
 
-      const search =
-        await axios.post(
-          "https://api.tavily.com/search",
-          {
-            api_key:
-              process.env.TAVILY_API_KEY,
+      const {
+        message,
+      } = req.body;
 
-            query: message,
+      const lowerMessage =
+        message.toLowerCase();
 
-            search_depth:
-              "basic",
+      // IMAGE GENERATION
 
-            max_results: 3,
-          }
+      if (
+
+        lowerMessage.includes(
+          "generate"
+        ) ||
+
+        lowerMessage.includes(
+          "create image"
+        ) ||
+
+        lowerMessage.includes(
+          "make image"
+        )
+
+      ) {
+
+        const prompt =
+
+          message
+
+            .replace(
+              "generate",
+              ""
+            )
+
+            .replace(
+              "create image",
+              ""
+            )
+
+            .replace(
+              "make image",
+              ""
+            )
+
+            .trim();
+
+        const imageUrl =
+
+          `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}`;
+
+        return res.json({
+
+          reply:
+            `Generated image for: ${prompt}`,
+
+          image:
+            imageUrl,
+        });
+      }
+
+      // OPEN YOUTUBE
+
+      if (
+
+        lowerMessage.includes(
+          "open youtube"
+        )
+
+      ) {
+
+        exec(
+          'start https://youtube.com'
         );
 
-      webData =
-        JSON.stringify(
-          search.data.results
+        return res.json({
+
+          reply:
+            "Opening YouTube",
+        });
+      }
+
+      // OPEN GOOGLE
+
+      if (
+
+        lowerMessage.includes(
+          "open google"
+        )
+
+      ) {
+
+        exec(
+          'start https://google.com'
         );
 
-    } catch (err) {
+        return res.json({
 
-      console.log(
-        "Tavily search failed"
-      );
-    }
+          reply:
+            "Opening Google",
+        });
+      }
 
-    // GROQ AI
-    const completion =
-      await groq.chat.completions.create({
+      // OPEN CHROME
 
-        messages: [
+      if (
 
-          {
-            role: "system",
+        lowerMessage.includes(
+          "open chrome"
+        )
 
-            content:
-              "You are Jarvis AI assistant. Give short smart replies.",
-          },
+      ) {
 
-          {
-            role: "user",
+        exec(
+          'start chrome'
+        );
 
-            content:
-              "User question: " +
-              message +
-              "\nRealtime web data: " +
-              webData,
-          },
-        ],
+        return res.json({
 
-        model:
-          "llama-3.3-70b-versatile",
+          reply:
+            "Opening Chrome",
+        });
+      }
+
+      // OPEN NOTEPAD
+
+      if (
+
+        lowerMessage.includes(
+          "open notepad"
+        )
+
+      ) {
+
+        exec(
+          'start notepad'
+        );
+
+        return res.json({
+
+          reply:
+            "Opening Notepad",
+        });
+      }
+
+      let webData =
+        "";
+
+      // TAVILY SEARCH
+
+      try {
+
+        const search =
+          await axios.post(
+
+            "https://api.tavily.com/search",
+
+            {
+
+              api_key:
+                process.env
+                  .TAVILY_API_KEY,
+
+              query:
+                message,
+
+              search_depth:
+                "basic",
+
+              max_results:
+                3,
+            }
+          );
+
+        webData =
+          JSON.stringify(
+            search.data
+              .results
+          );
+
+      } catch (err) {
+
+        console.log(
+          "Search failed"
+        );
+      }
+
+      // GROQ AI
+
+      const completion =
+
+        await groq.chat.completions.create({
+
+          messages: [
+
+            {
+
+              role:
+                "system",
+
+              content:
+                "You are Jarvis AI assistant. Give short fast replies.",
+            },
+
+            {
+
+              role:
+                "user",
+
+              content:
+
+                "User question: " +
+
+                message +
+
+                "\nRealtime web data: " +
+
+                webData,
+            },
+          ],
+
+          model:
+            "llama-3.3-70b-versatile",
+        });
+
+      const reply =
+
+        completion
+          .choices[0]
+          .message
+          .content;
+
+      res.json({
+
+        reply,
       });
 
-    const reply =
-      completion.choices[0]
-      .message.content;
+    } catch (
+      error
+    ) {
 
-    res.json({
-      reply,
-    });
+      console.log(
+        error
+      );
 
-  } catch (error) {
+      res.status(500)
+        .json({
 
-    console.log(error);
-
-    res.status(500).json({
-      error:
-        "AI connection failed",
-    });
+          error:
+            "AI connection failed",
+        });
+    }
   }
-});
+);
 
-// PORT
 const PORT =
-  process.env.PORT || 5000;
 
-app.listen(PORT, () => {
+  process.env.PORT ||
+  5000;
 
-  console.log(
-    `Server running on ${PORT}`
-  );
+app.listen(
+  PORT,
+  () => {
 
-});
+    console.log(
+
+      `Server running on ${PORT}`
+    );
+  }
+);
