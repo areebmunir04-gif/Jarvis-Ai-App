@@ -18,7 +18,25 @@ export default function Home() {
     useState(false);
 
   const [messages, setMessages] =
-    useState<any[]>([]);
+    useState<any[]>(() => {
+
+      if (
+        typeof window !==
+        "undefined"
+      ) {
+
+        const saved =
+          localStorage.getItem(
+            "jarvis_messages"
+          );
+
+        return saved
+          ? JSON.parse(saved)
+          : [];
+      }
+
+      return [];
+    });
 
   const messagesEndRef =
     useRef<HTMLDivElement>(
@@ -31,6 +49,11 @@ export default function Home() {
       ?.scrollIntoView({
         behavior: "smooth",
       });
+
+    localStorage.setItem(
+      "jarvis_messages",
+      JSON.stringify(messages)
+    );
 
   }, [messages]);
 
@@ -65,6 +88,9 @@ export default function Home() {
           {
             message:
               finalMessage,
+
+            history:
+              messages,
           }
         );
 
@@ -155,15 +181,25 @@ export default function Home() {
 
     <main className="flex h-screen bg-[#0f0f0f] text-white overflow-hidden">
 
-      {/* SIDEBAR */}
-
       <aside className="w-72 bg-[#171717] border-r border-white/10 p-5 hidden md:flex flex-col">
 
         <h1 className="text-3xl font-bold text-cyan-400 mb-8">
           JARVIS AI
         </h1>
 
-        <button className="bg-cyan-500 hover:bg-cyan-400 transition-all text-black font-bold py-3 rounded-xl">
+        <button
+
+          onClick={() => {
+
+            localStorage.removeItem(
+              "jarvis_messages"
+            );
+
+            setMessages([]);
+          }}
+
+          className="bg-cyan-500 hover:bg-cyan-400 transition-all text-black font-bold py-3 rounded-xl"
+        >
           + New Chat
         </button>
 
@@ -173,17 +209,11 @@ export default function Home() {
 
       </aside>
 
-      {/* MAIN CHAT */}
-
       <section className="flex-1 flex flex-col">
-
-        {/* TOP BAR */}
 
         <div className="h-16 border-b border-white/10 flex items-center px-6 text-xl font-semibold bg-[#111111]">
           ChatGPT Style Jarvis
         </div>
-
-        {/* CHAT AREA */}
 
         <div className="flex-1 overflow-y-auto px-4 py-6 space-y-6">
 
@@ -303,8 +333,6 @@ export default function Home() {
           <div ref={messagesEndRef} />
 
         </div>
-
-        {/* INPUT AREA */}
 
         <div className="border-t border-white/10 p-4 bg-[#111111]">
 
