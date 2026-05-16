@@ -297,30 +297,34 @@ export default function Home() {
 
   return (
 
-    <main className="flex h-screen bg-[#0f0f0f] text-white overflow-hidden">
+    <main className="flex flex-col md:flex-row h-screen bg-[#0f0f0f] text-white overflow-hidden">
 
       {/* SIDEBAR */}
 
-      <aside className="w-72 bg-[#171717] border-r border-white/10 p-5 hidden md:flex flex-col">
+      <aside className="w-full md:w-72 bg-[#171717] border-b md:border-b-0 md:border-r border-white/10 p-4 flex md:flex-col gap-3 overflow-x-auto md:overflow-visible">
 
-        <h1 className="text-3xl font-bold text-cyan-400 mb-8">
-          JARVIS AI
-        </h1>
+        <div className="flex items-center justify-between md:block w-full">
 
-        <button
+          <h1 className="text-2xl md:text-3xl font-bold text-cyan-400">
+            JARVIS AI
+          </h1>
 
-          onClick={
-            createNewChat
-          }
+          <button
 
-          className="bg-cyan-500 hover:bg-cyan-400 transition-all text-black font-bold py-3 rounded-xl"
-        >
+            onClick={
+              createNewChat
+            }
 
-          + New Chat
+            className="bg-cyan-500 hover:bg-cyan-400 transition-all text-black font-bold px-4 py-2 rounded-xl"
+          >
 
-        </button>
+            + New
 
-        <div className="mt-6 space-y-2 overflow-y-auto">
+          </button>
+
+        </div>
+
+        <div className="flex md:flex-col gap-2 overflow-x-auto md:overflow-y-auto mt-2 md:mt-6">
 
           {chats.map(
             (chat) => (
@@ -335,7 +339,7 @@ export default function Home() {
                   )
                 }
 
-                className={`w-full text-left px-4 py-3 rounded-xl transition-all ${
+                className={`min-w-[140px] md:w-full text-left px-4 py-3 rounded-xl transition-all ${
                   currentChatId ===
                   chat.id
                     ? "bg-cyan-500 text-black"
@@ -357,7 +361,7 @@ export default function Home() {
 
       <section className="flex-1 flex flex-col">
 
-        <div className="h-16 border-b border-white/10 flex items-center px-6 text-xl font-semibold bg-[#111111]">
+        <div className="h-14 md:h-16 border-b border-white/10 flex items-center px-4 md:px-6 text-lg md:text-xl font-semibold bg-[#111111]">
 
           ChatGPT Style Jarvis
 
@@ -365,11 +369,11 @@ export default function Home() {
 
         {/* CHAT AREA */}
 
-        <div className="flex-1 overflow-y-auto px-4 py-6 space-y-6">
+        <div className="flex-1 overflow-y-auto px-3 md:px-4 py-4 md:py-6 space-y-5">
 
           {!currentChat && (
 
-            <div className="h-full flex flex-col items-center justify-center">
+            <div className="h-full flex flex-col items-center justify-center text-center px-4">
 
               <motion.h1
 
@@ -383,7 +387,7 @@ export default function Home() {
                   y: 0,
                 }}
 
-                className="text-6xl font-bold text-cyan-400"
+                className="text-4xl md:text-6xl font-bold text-cyan-400"
               >
 
                 JARVIS AI
@@ -426,7 +430,7 @@ export default function Home() {
                   y: 0,
                 }}
 
-                className={`flex gap-4 ${
+                className={`flex gap-3 ${
                   msg.role ===
                   "user"
                     ? "justify-end"
@@ -437,7 +441,7 @@ export default function Home() {
                 {msg.role ===
                   "assistant" && (
 
-                  <div className="w-10 h-10 rounded-full bg-cyan-500 flex items-center justify-center text-black">
+                  <div className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-cyan-500 flex items-center justify-center text-black flex-shrink-0">
 
                     <FaRobot />
 
@@ -445,7 +449,7 @@ export default function Home() {
                 )}
 
                 <div
-                  className={`max-w-[75%] p-4 rounded-2xl text-lg ${
+                  className={`max-w-[85%] md:max-w-[75%] p-3 md:p-4 rounded-2xl text-sm md:text-lg ${
                     msg.role ===
                     "user"
                       ? "bg-cyan-500 text-black"
@@ -460,7 +464,7 @@ export default function Home() {
                 {msg.role ===
                   "user" && (
 
-                  <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-black">
+                  <div className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-white flex items-center justify-center text-black flex-shrink-0">
 
                     <FaUser />
 
@@ -473,15 +477,15 @@ export default function Home() {
 
           {loading && (
 
-            <div className="flex gap-4">
+            <div className="flex gap-3">
 
-              <div className="w-10 h-10 rounded-full bg-cyan-500 flex items-center justify-center text-black">
+              <div className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-cyan-500 flex items-center justify-center text-black">
 
                 <FaRobot />
 
               </div>
 
-              <div className="bg-[#1f1f1f] border border-white/10 px-5 py-4 rounded-2xl">
+              <div className="bg-[#1f1f1f] border border-white/10 px-4 py-3 rounded-2xl text-sm md:text-base">
 
                 Jarvis thinking...
 
@@ -496,9 +500,9 @@ export default function Home() {
 
         {/* INPUT */}
 
-        <div className="border-t border-white/10 p-4 bg-[#111111]">
+        <div className="border-t border-white/10 p-3 md:p-4 bg-[#111111]">
 
-          <div className="flex gap-3">
+          <div className="flex gap-2 md:gap-3">
 
             <input
 
@@ -525,7 +529,7 @@ export default function Home() {
                 }
               }}
 
-              className="flex-1 bg-[#1f1f1f] border border-white/10 rounded-2xl px-5 py-4 outline-none text-white"
+              className="flex-1 bg-[#1f1f1f] border border-white/10 rounded-2xl px-4 py-3 md:px-5 md:py-4 outline-none text-white text-sm md:text-base"
             />
 
             <button
@@ -534,7 +538,7 @@ export default function Home() {
                 startListening
               }
 
-              className="bg-cyan-500 hover:bg-cyan-400 transition-all text-black px-5 rounded-2xl text-xl"
+              className="bg-cyan-500 hover:bg-cyan-400 transition-all text-black px-4 md:px-5 rounded-2xl text-lg md:text-xl"
             >
 
               <FaMicrophone />
@@ -547,7 +551,7 @@ export default function Home() {
                 sendMessage("")
               }
 
-              className="bg-cyan-500 hover:bg-cyan-400 transition-all text-black font-bold px-8 rounded-2xl"
+              className="bg-cyan-500 hover:bg-cyan-400 transition-all text-black font-bold px-5 md:px-8 rounded-2xl text-sm md:text-base"
             >
 
               Send
