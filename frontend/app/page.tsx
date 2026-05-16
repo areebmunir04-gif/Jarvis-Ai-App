@@ -1,8 +1,17 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import {
+  useState,
+  useEffect,
+  useRef,
+} from "react";
+
 import axios from "axios";
-import { motion } from "framer-motion";
+
+import {
+  motion,
+} from "framer-motion";
+
 import {
   FaMicrophone,
   FaRobot,
@@ -17,45 +26,98 @@ export default function Home() {
   const [loading, setLoading] =
     useState(false);
 
-  const [messages, setMessages] =
-    useState<any[]>(() => {
+  const [chats, setChats] =
+    useState<any[]>([]);
 
-      if (
-        typeof window !==
-        "undefined"
-      ) {
-
-        const saved =
-          localStorage.getItem(
-            "jarvis_messages"
-          );
-
-        return saved
-          ? JSON.parse(saved)
-          : [];
-      }
-
-      return [];
-    });
+  const [currentChatId,
+    setCurrentChatId] =
+    useState<number | null>(
+      null
+    );
 
   const messagesEndRef =
     useRef<HTMLDivElement>(
       null
     );
 
+  // LOAD CHATS
+
   useEffect(() => {
+
+    const savedChats =
+      localStorage.getItem(
+        "jarvis_chats"
+      );
+
+    if (savedChats) {
+
+      const parsed =
+        JSON.parse(
+          savedChats
+        );
+
+      setChats(parsed);
+
+      if (
+        parsed.length > 0
+      ) {
+
+        setCurrentChatId(
+          parsed[0].id
+        );
+      }
+    }
+
+  }, []);
+
+  // SAVE CHATS
+
+  useEffect(() => {
+
+    localStorage.setItem(
+      "jarvis_chats",
+      JSON.stringify(chats)
+    );
 
     messagesEndRef.current
       ?.scrollIntoView({
         behavior: "smooth",
       });
 
-    localStorage.setItem(
-      "jarvis_messages",
-      JSON.stringify(messages)
+  }, [chats]);
+
+  const currentChat =
+    chats.find(
+      (chat) =>
+        chat.id ===
+        currentChatId
     );
 
-  }, [messages]);
+  // NEW CHAT
+
+  const createNewChat = () => {
+
+    const newChat = {
+
+      id: Date.now(),
+
+      title:
+        "New Chat",
+
+      messages: [],
+    };
+
+    setChats((prev) => [
+      newChat,
+      ...prev,
+    ]);
+
+    setCurrentChatId(
+      newChat.id
+    );
+  };
+
+  // SEND MESSAGE
 
   const sendMessage = async (
     customMessage: string = ""
@@ -64,17 +126,54 @@ export default function Home() {
     const finalMessage =
       customMessage || message;
 
-    if (!finalMessage) return;
+    if (
+      !finalMessage ||
+      !currentChat
+    )
+      return;
 
     const userMessage = {
+
       role: "user",
-      content: finalMessage,
+
+      content:
+        finalMessage,
     };
 
-    setMessages((prev) => [
-      ...prev,
+    const updatedMessages = [
+
+      ...currentChat.messages,
+
       userMessage,
-    ]);
+    ];
+
+    setChats((prev) =>
+      prev.map((chat) =>
+
+        chat.id ===
+        currentChatId
+
+          ? {
+
+              ...chat,
+
+              title:
+                chat.messages
+                  .length === 0
+                  ? finalMessage
+                      .slice(
+                        0,
+                        20
+                      )
+                  : chat.title,
+
+              messages:
+                updatedMessages,
+            }
+
+          : chat
+      )
+    );
 
     setMessage("");
 
@@ -86,31 +185,53 @@ export default function Home() {
         await axios.post(
           "https://jarvis-ai-app-1.onrender.com/chat",
           {
+
             message:
               finalMessage,
 
             history:
-              messages,
+              updatedMessages,
           }
         );
 
       const aiMessage = {
-        role: "assistant",
+
+        role:
+          "assistant",
+
         content:
           res.data.reply,
       };
 
-      setMessages((prev) => [
-        ...prev,
-        aiMessage,
-      ]);
+      setChats((prev) =>
+        prev.map((chat) =>
+
+          chat.id ===
+          currentChatId
+
+            ? {
+
+                ...chat,
+
+                messages: [
+
+                  ...updatedMessages,
+
+                  aiMessage,
+                ],
+              }
+
+            : chat
+        )
+      );
 
       const speech =
         new SpeechSynthesisUtterance(
           res.data.reply
         );
 
-      speech.lang = "en-US";
+      speech.lang =
+        "en-US";
 
       window.speechSynthesis.speak(
         speech
@@ -120,30 +241,26 @@ export default function Home() {
 
       console.log(error);
 
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          content:
-            "Connection failed",
-        },
-      ]);
-
     } finally {
 
       setLoading(false);
     }
   };
 
+  // VOICE INPUT
+
   const startListening = () => {
 
     const SpeechRecognition =
       (window as any)
         .SpeechRecognition ||
+
       (window as any)
         .webkitSpeechRecognition;
 
-    if (!SpeechRecognition) {
+    if (
+      !SpeechRecognition
+    ) {
 
       alert(
         "Speech Recognition not supported"
@@ -155,7 +272,8 @@ export default function Home() {
     const recognition =
       new SpeechRecognition();
 
-    recognition.lang = "en-US";
+    recognition.lang =
+      "en-US";
 
     recognition.onresult = (
       event: any
@@ -181,6 +299,8 @@ export default function Home() {
 
     <main className="flex h-screen bg-[#0f0f0f] text-white overflow-hidden">
 
+      {/* SIDEBAR */}
+
       <aside className="w-72 bg-[#171717] border-r border-white/10 p-5 hidden md:flex flex-col">
 
         <h1 className="text-3xl font-bold text-cyan-400 mb-8">
@@ -189,37 +309,67 @@ export default function Home() {
 
         <button
 
-          onClick={() => {
-
-            localStorage.removeItem(
-              "jarvis_messages"
-            );
-
-            setMessages([]);
-          }}
+          onClick={
+            createNewChat
+          }
 
           className="bg-cyan-500 hover:bg-cyan-400 transition-all text-black font-bold py-3 rounded-xl"
         >
+
           + New Chat
+
         </button>
 
-        <div className="mt-10 text-sm text-gray-400">
-          Premium AI Assistant
+        <div className="mt-6 space-y-2 overflow-y-auto">
+
+          {chats.map(
+            (chat) => (
+
+              <button
+
+                key={chat.id}
+
+                onClick={() =>
+                  setCurrentChatId(
+                    chat.id
+                  )
+                }
+
+                className={`w-full text-left px-4 py-3 rounded-xl transition-all ${
+                  currentChatId ===
+                  chat.id
+                    ? "bg-cyan-500 text-black"
+                    : "bg-[#1f1f1f] hover:bg-[#2a2a2a]"
+                }`}
+              >
+
+                {chat.title}
+
+              </button>
+            )
+          )}
+
         </div>
 
       </aside>
 
+      {/* MAIN */}
+
       <section className="flex-1 flex flex-col">
 
         <div className="h-16 border-b border-white/10 flex items-center px-6 text-xl font-semibold bg-[#111111]">
+
           ChatGPT Style Jarvis
+
         </div>
+
+        {/* CHAT AREA */}
 
         <div className="flex-1 overflow-y-auto px-4 py-6 space-y-6">
 
-          {messages.length === 0 && (
+          {!currentChat && (
 
-            <div className="h-full flex flex-col items-center justify-center text-center">
+            <div className="h-full flex flex-col items-center justify-center">
 
               <motion.h1
 
@@ -235,20 +385,31 @@ export default function Home() {
 
                 className="text-6xl font-bold text-cyan-400"
               >
+
                 JARVIS AI
+
               </motion.h1>
 
-              <p className="mt-5 text-gray-400 text-lg">
-                Your futuristic AI assistant
-              </p>
+              <button
+
+                onClick={
+                  createNewChat
+                }
+
+                className="mt-8 bg-cyan-500 hover:bg-cyan-400 text-black font-bold px-8 py-4 rounded-2xl"
+              >
+
+                Start Chat
+
+              </button>
 
             </div>
           )}
 
-          {messages.map(
+          {currentChat?.messages.map(
             (
-              msg,
-              index
+              msg: any,
+              index: number
             ) => (
 
               <motion.div
@@ -277,7 +438,9 @@ export default function Home() {
                   "assistant" && (
 
                   <div className="w-10 h-10 rounded-full bg-cyan-500 flex items-center justify-center text-black">
+
                     <FaRobot />
+
                   </div>
                 )}
 
@@ -289,14 +452,18 @@ export default function Home() {
                       : "bg-[#1f1f1f] border border-white/10"
                   }`}
                 >
+
                   {msg.content}
+
                 </div>
 
                 {msg.role ===
                   "user" && (
 
                   <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-black">
+
                     <FaUser />
+
                   </div>
                 )}
 
@@ -306,33 +473,28 @@ export default function Home() {
 
           {loading && (
 
-            <motion.div
-
-              initial={{
-                opacity: 0,
-              }}
-
-              animate={{
-                opacity: 1,
-              }}
-
-              className="flex items-center gap-3"
-            >
+            <div className="flex gap-4">
 
               <div className="w-10 h-10 rounded-full bg-cyan-500 flex items-center justify-center text-black">
+
                 <FaRobot />
+
               </div>
 
               <div className="bg-[#1f1f1f] border border-white/10 px-5 py-4 rounded-2xl">
-                Jarvis is thinking...
+
+                Jarvis thinking...
+
               </div>
 
-            </motion.div>
+            </div>
           )}
 
           <div ref={messagesEndRef} />
 
         </div>
+
+        {/* INPUT */}
 
         <div className="border-t border-white/10 p-4 bg-[#111111]">
 
@@ -355,7 +517,8 @@ export default function Home() {
               onKeyDown={(e) => {
 
                 if (
-                  e.key === "Enter"
+                  e.key ===
+                  "Enter"
                 ) {
 
                   sendMessage("");
