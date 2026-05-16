@@ -113,9 +113,15 @@ app.post(
 
             .trim();
 
-        const imageUrl =
+      
+const realisticPrompt =
 
-          `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}`;
+  `ultra realistic photo, 8k, DSLR, cinematic lighting, highly detailed, realistic skin texture, professional photography, ${prompt}`;
+
+const imageUrl =
+
+  `https://image.pollinations.ai/prompt/${encodeURIComponent(realisticPrompt)}`;
+
 
         return res.json({
 
