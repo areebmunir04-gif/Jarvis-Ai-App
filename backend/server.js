@@ -35,30 +35,46 @@ app.post("/chat", async (req, res) => {
 
     const { message } = req.body;
     
-    // IMAGE GENERATION
+
+// IMAGE GENERATION
 
 if (
+
   lowerMessage.includes(
     "generate"
   ) ||
 
   lowerMessage.includes(
     "create image"
+  ) ||
+
+  lowerMessage.includes(
+    "make image"
   )
+
 ) {
 
   const prompt =
+
     message
+
       .replace(
         "generate",
         ""
       )
+
       .replace(
         "create image",
+        ""
+      )
+
+      .replace(
+        "make image",
         ""
       );
 
   const imageUrl =
+
     `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}`;
 
   return res.json({
