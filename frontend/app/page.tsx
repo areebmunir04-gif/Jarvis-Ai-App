@@ -194,14 +194,35 @@ export default function Home() {
           }
         );
 
-      const aiMessage = {
+      let aiMessage;
 
-        role:
-          "assistant",
+      if (
+        res.data.image
+      ) {
 
-        content:
-          res.data.reply,
-      };
+        aiMessage = {
+
+          role:
+            "assistant",
+
+          content:
+            res.data.reply,
+
+          image:
+            res.data.image,
+        };
+
+      } else {
+
+        aiMessage = {
+
+          role:
+            "assistant",
+
+          content:
+            res.data.reply,
+        };
+      }
 
       setChats((prev) =>
         prev.map((chat) =>
@@ -457,7 +478,25 @@ export default function Home() {
                   }`}
                 >
 
-                  {msg.content}
+                  <div>
+
+                    <div>
+                      {msg.content}
+                    </div>
+
+                    {msg.image && (
+
+                      <img
+
+                        src={msg.image}
+
+                        alt="AI Generated"
+
+                        className="mt-4 rounded-2xl w-full border border-white/10"
+                      />
+                    )}
+
+                  </div>
 
                 </div>
 
