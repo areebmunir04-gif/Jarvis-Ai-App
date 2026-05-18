@@ -8,6 +8,9 @@ const cors =
 
 const axios =
   require("axios");
+  
+const multer =
+  require("multer");
 
 const Groq =
   require("groq-sdk");
@@ -15,6 +18,11 @@ const Groq =
 const app =
   express();
 
+const upload =
+  multer({
+    storage:
+      multer.memoryStorage(),
+  });
 app.use(
   cors()
 );
@@ -40,6 +48,47 @@ app.get(
     res.send(
       "Jarvis backend running"
     );
+  }
+);
+
+// IMAGE VISION
+
+app.post(
+
+  "/vision",
+
+  upload.single(
+    "image"
+  ),
+
+  async (
+    req,
+    res
+  ) => {
+
+    try {
+
+      return res.json({
+
+        reply:
+          "Image uploaded successfully 😎🔥",
+      });
+
+    } catch (
+      error
+    ) {
+
+      console.log(
+        error
+      );
+
+      res.status(500)
+        .json({
+
+          error:
+            "Vision failed",
+        });
+    }
   }
 );
 
