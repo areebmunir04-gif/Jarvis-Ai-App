@@ -8,7 +8,7 @@ const cors =
 
 const axios =
   require("axios");
-  
+
 const multer =
   require("multer");
 
@@ -20,9 +20,11 @@ const app =
 
 const upload =
   multer({
+
     storage:
       multer.memoryStorage(),
   });
+
 app.use(
   cors()
 );
@@ -43,6 +45,7 @@ const groq =
 
 app.get(
   "/",
+
   (req, res) => {
 
     res.send(
@@ -50,7 +53,6 @@ app.get(
     );
   }
 );
-
 
 // REAL GEMINI AI VISION
 
@@ -69,26 +71,37 @@ app.post(
 
     try {
 
-      const imageBase64 =
+      const reply =
 
-        req.file.buffer.toString(
-          "base64"
-        );
+        "Image uploaded and received successfully 😎🔥";
 
-      const prompt =
+      return res.json({
 
-        req.body.prompt ||
+        reply,
+      });
 
-        "Describe this image in detail";
+    } catch (
+      error
+    ) {
 
-  
-const reply =
+      console.log(
+        error
+      );
 
-  "Image uploaded and received successfully 😎🔥";
+      res.status(500)
+        .json({
+
+          error:
+            "Vision failed",
+        });
+    }
+  }
+);
 
 // CHAT
 
 app.post(
+
   "/chat",
 
   async (
@@ -230,6 +243,7 @@ const PORT =
 
 app.listen(
   PORT,
+
   () => {
 
     console.log(

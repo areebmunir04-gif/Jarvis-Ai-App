@@ -653,87 +653,87 @@ const sendImage =
 
   className="hidden"
 
-  onChange={(e:any) => {
+  onChange={async (e:any) => {
 
     const file =
-      e.target.files[0];
+      e.target.files?.[0];
 
-    setSelectedImage(
+    if (!file)
+      return;
+
+    const formData =
+      new FormData();
+
+    formData.append(
+      "image",
       file
     );
 
-    if (file) {
+    formData.append(
 
-      const formData =
-        new FormData();
+      "prompt",
 
-      formData.append(
-        "image",
-        file
+      "Describe this image"
+    );
+
+    try {
+
+      const res =
+        await axios.post(
+
+          "https://jarvis-ai-app-1.onrender.com/vision",
+
+          formData,
+
+          {
+
+            headers: {
+
+              "Content-Type":
+                "multipart/form-data",
+            },
+          }
+        );
+
+      const aiMessage = {
+
+        role:
+          "assistant",
+
+        content:
+          res.data.reply,
+      };
+
+      setChats((prev:any) =>
+
+        prev.map((chat:any) =>
+
+          chat.id ===
+          currentChatId
+
+            ? {
+
+                ...chat,
+
+                messages: [
+
+                  ...chat.messages,
+
+                  aiMessage,
+                ],
+              }
+
+            : chat
+        )
       );
 
-formData.append(
+    } catch (
+      error
+    ) {
 
-  "prompt",
-
-  "Describe this image in detail"
-);
-
-axios.post(
-
-  "https://jarvis-ai-app-1.onrender.com/vision",
-
-  formData,
-
-  {
-
-    headers: {
-
-      "Content-Type":
-        "multipart/form-data",
-    },
-  }
-)
-
-.then((res) => {
-
-  const aiMessage = {
-
-    role:
-      "assistant",
-
-    content:
-      res.data.reply,
-  };
-
-  setChats((prev:any) =>
-
-    prev.map((chat:any) =>
-
-      chat.id ===
-      currentChatId
-
-        ? {
-
-            ...chat,
-
-            messages: [
-
-              ...chat.messages,
-
-              aiMessage,
-            ],
-          }
-
-        : chat
-    )
-  );
-})
-
-.catch((err) => {
-
-  console.log(err);
-});
+      console.log(
+        error
+      );
     }
   }}
 />
