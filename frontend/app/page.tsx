@@ -672,52 +672,68 @@ const sendImage =
         file
       );
 
-      axios.post(
+formData.append(
 
-        "https://jarvis-ai-app-1.onrender.com/vision",
+  "prompt",
 
-        formData
-      )
+  "Describe this image in detail"
+);
 
-      .then((res) => {
+axios.post(
 
-        const aiMessage = {
+  "https://jarvis-ai-app-1.onrender.com/vision",
 
-          role:
-            "assistant",
+  formData,
 
-          content:
-            res.data.reply,
-        };
+  {
 
-        setChats((prev:any) =>
+    headers: {
 
-          prev.map((chat:any) =>
+      "Content-Type":
+        "multipart/form-data",
+    },
+  }
+)
 
-            chat.id ===
-            currentChatId
+.then((res) => {
 
-              ? {
+  const aiMessage = {
 
-                  ...chat,
+    role:
+      "assistant",
 
-                  messages: [
+    content:
+      res.data.reply,
+  };
 
-                    ...chat.messages,
+  setChats((prev:any) =>
 
-                    aiMessage,
-                  ],
-                }
+    prev.map((chat:any) =>
 
-              : chat
-          )
-        );
-      })
+      chat.id ===
+      currentChatId
 
-      .catch((err) => {
+        ? {
 
-        console.log(err);
-      });
+            ...chat,
+
+            messages: [
+
+              ...chat.messages,
+
+              aiMessage,
+            ],
+          }
+
+        : chat
+    )
+  );
+})
+
+.catch((err) => {
+
+  console.log(err);
+});
     }
   }}
 />
