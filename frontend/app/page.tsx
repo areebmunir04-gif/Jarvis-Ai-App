@@ -272,6 +272,86 @@ const [selectedImage,
     }
   };
 
+// SEND IMAGE
+
+const sendImage =
+  async () => {
+
+    if (
+      !selectedImage
+    )
+      return;
+
+    const formData =
+      new FormData();
+
+    formData.append(
+      "image",
+      selectedImage
+    );
+
+    try {
+
+      setLoading(true);
+
+      const res =
+        await axios.post(
+
+          "https://jarvis-ai-app-1.onrender.com/vision",
+
+          formData
+        );
+
+      const aiMessage = {
+
+        role:
+          "assistant",
+
+        content:
+          res.data.reply,
+      };
+
+      setChats((prev:any) =>
+
+        prev.map((chat:any) =>
+
+          chat.id ===
+          currentChatId
+
+            ? {
+
+                ...chat,
+
+                messages: [
+
+                  ...chat.messages,
+
+                  aiMessage,
+                ],
+              }
+
+            : chat
+        )
+      );
+
+      setSelectedImage(
+        null
+      );
+
+    } catch (
+      error
+    ) {
+
+      console.log(
+        error
+      );
+
+    } finally {
+
+      setLoading(false);
+    }
+};
+
   // VOICE INPUT
 
   const startListening = () => {
@@ -333,6 +413,19 @@ const [selectedImage,
           <h1 className="text-2xl md:text-3xl font-bold text-cyan-400">
             JARVIS AI
           </h1>
+          
+<button
+
+  onClick={
+    sendImage
+  }
+
+  className="bg-cyan-500 hover:bg-cyan-400 transition-all text-black font-bold px-5 rounded-2xl"
+>
+
+  Upload
+
+</button>
 
           <button
 
@@ -590,16 +683,12 @@ const [selectedImage,
 
               className="flex-1 bg-[#1f1f1f] border border-white/10 rounded-2xl px-4 py-3 md:px-5 md:py-4 outline-none text-white text-sm md:text-base"
             />
-          
-        <label
+          <label
 
   htmlFor="imageUpload"
 
-  className="bg-[#1f1f1f] hover:bg-[#2a2a2a] transition-all px-4 md:px-5 rounded-2xl flex items-center justify-center cursor-pointer"
->
-
-  📷
-
+  className="bg-[#1f1f1f] hover:bg-[#2a2a2a] transition-all w-12 h-12 rounded-2xl flex items-center justify-center cursor-pointer text-3xl">
+  +
 </label>
 
             <button
