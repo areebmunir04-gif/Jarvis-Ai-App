@@ -9,9 +9,6 @@ const cors =
 const axios =
   require("axios");
 
-const { exec } =
-  require("child_process");
-
 const Groq =
   require("groq-sdk");
 
@@ -19,16 +16,7 @@ const app =
   express();
 
 app.use(
-  cors({
-    origin: "*",
-    methods: [
-      "GET",
-      "POST",
-    ],
-    allowedHeaders: [
-      "Content-Type",
-    ],
-  })
+  cors()
 );
 
 app.use(
@@ -43,7 +31,7 @@ const groq =
         .GROQ_API_KEY,
   });
 
-// HOME ROUTE
+// HOME
 
 app.get(
   "/",
@@ -55,7 +43,7 @@ app.get(
   }
 );
 
-// CHAT ROUTE
+// CHAT
 
 app.post(
   "/chat",
@@ -74,7 +62,7 @@ app.post(
       const lowerMessage =
         message.toLowerCase();
 
-      // REALISTIC FLUX IMAGE GENERATION
+      // IMAGE GENERATION
 
       if (
 
@@ -113,200 +101,25 @@ app.post(
 
             .trim();
 
-        try {
+        const realisticPrompt =
 
-          const response =
-            await axios.post(
+          `ultra realistic photo, cinematic lighting, DSLR, highly detailed, 8k, realistic skin texture, professional photography, ${prompt}`;
 
-              "https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell",
+        const imageUrl =
 
-              {
-                inputs:
-                  `ultra realistic, cinematic lighting, 8k, highly detailed, professional photography, ${prompt}`,
-              },
-
-              {
-
-                headers: {
-
-                  Authorization:
-                    `Bearer ${process.env.HF_TOKEN}`,
-
-                  "Content-Type":
-                    "application/json",
-                },
-
-                responseType:
-                  "arraybuffer",
-              }
-            );
-
-          const base64Image =
-
-            Buffer.from(
-              response.data,
-              "binary"
-            ).toString(
-              "base64"
-            );
-
-          const imageUrl =
-
-            `data:image/png;base64,${base64Image}`;
-
-          return res.json({
-
-            reply:
-              `Generated realistic image for: ${prompt}`,
-
-            image:
-              imageUrl,
-          });
-
-        } catch (
-          error
-        ) {
-
-          console.log(
-            error
-          );
-
-          return res.status(500)
-            .json({
-
-              error:
-                "Image generation failed",
-            });
-        }
-      }
-
-      // OPEN YOUTUBE
-
-      if (
-
-        lowerMessage.includes(
-          "open youtube"
-        )
-
-      ) {
-
-        exec(
-          'start https://youtube.com'
-        );
+          `https://image.pollinations.ai/prompt/${encodeURIComponent(realisticPrompt)}`;
 
         return res.json({
 
           reply:
-            "Opening YouTube",
+            `Generated realistic image for: ${prompt}`,
+
+          image:
+            imageUrl,
         });
       }
 
-      // OPEN GOOGLE
-
-      if (
-
-        lowerMessage.includes(
-          "open google"
-        )
-
-      ) {
-
-        exec(
-          'start https://google.com'
-        );
-
-        return res.json({
-
-          reply:
-            "Opening Google",
-        });
-      }
-
-      // OPEN CHROME
-
-      if (
-
-        lowerMessage.includes(
-          "open chrome"
-        )
-
-      ) {
-
-        exec(
-          'start chrome'
-        );
-
-        return res.json({
-
-          reply:
-            "Opening Chrome",
-        });
-      }
-
-      // OPEN NOTEPAD
-
-      if (
-
-        lowerMessage.includes(
-          "open notepad"
-        )
-
-      ) {
-
-        exec(
-          'start notepad'
-        );
-
-        return res.json({
-
-          reply:
-            "Opening Notepad",
-        });
-      }
-
-      let webData =
-        "";
-
-      // TAVILY SEARCH
-
-      try {
-
-        const search =
-          await axios.post(
-
-            "https://api.tavily.com/search",
-
-            {
-
-              api_key:
-                process.env
-                  .TAVILY_API_KEY,
-
-              query:
-                message,
-
-              search_depth:
-                "basic",
-
-              max_results:
-                3,
-            }
-          );
-
-        webData =
-          JSON.stringify(
-            search.data
-              .results
-          );
-
-      } catch (err) {
-
-        console.log(
-          "Search failed"
-        );
-      }
-
-      // GROQ AI
+      // AI CHAT
 
       const completion =
 
@@ -329,14 +142,7 @@ app.post(
                 "user",
 
               content:
-
-                "User question: " +
-
-                message +
-
-                "\nRealtime web data: " +
-
-                webData,
+                message,
             },
           ],
 
@@ -368,7 +174,7 @@ app.post(
         .json({
 
           error:
-            "AI connection failed",
+            "AI failed",
         });
     }
   }
@@ -384,7 +190,6 @@ app.listen(
   () => {
 
     console.log(
-
       `Server running on ${PORT}`
     );
   }
