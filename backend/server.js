@@ -71,14 +71,61 @@ app.post(
 
     try {
 
-      const reply =
 
-        "Image uploaded and received successfully 😎🔥";
+const imageBase64 =
 
-      return res.json({
+  req.file.buffer.toString(
+    "base64"
+  );
 
-        reply,
-      });
+const response =
+
+  await axios.post(
+
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+
+    {
+
+      contents: [
+
+        {
+
+          parts: [
+
+            {
+
+              text:
+                "Describe this image in detail",
+            },
+
+            {
+
+              inline_data: {
+
+                mime_type:
+                  req.file.mimetype,
+
+                data:
+                  imageBase64,
+              },
+            },
+          ],
+        },
+      ],
+    }
+  );
+
+const reply =
+
+  response.data
+    .candidates[0]
+    .content.parts[0]
+    .text;
+
+return res.json({
+
+  reply,
+});
 
     } catch (
       error
