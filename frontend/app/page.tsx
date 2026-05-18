@@ -26,6 +26,10 @@ export default function Home() {
   const [loading, setLoading] =
     useState(false);
 
+const [selectedImage,
+  setSelectedImage] =
+  useState<any>(null);
+
   const [chats, setChats] =
     useState<any[]>([]);
 
@@ -541,6 +545,22 @@ export default function Home() {
 
         <div className="border-t border-white/10 p-3 md:p-4 bg-[#111111]">
 
+{selectedImage && (
+
+  <img
+
+    src={
+      URL.createObjectURL(
+        selectedImage
+      )
+    }
+
+    alt="preview"
+
+    className="w-32 rounded-2xl mb-3 border border-white/10"
+  />
+)}
+
           <div className="flex gap-2 md:gap-3">
 
             <input
@@ -570,6 +590,17 @@ export default function Home() {
 
               className="flex-1 bg-[#1f1f1f] border border-white/10 rounded-2xl px-4 py-3 md:px-5 md:py-4 outline-none text-white text-sm md:text-base"
             />
+          
+        <label
+
+  htmlFor="imageUpload"
+
+  className="bg-[#1f1f1f] hover:bg-[#2a2a2a] transition-all px-4 md:px-5 rounded-2xl flex items-center justify-center cursor-pointer"
+>
+
+  📷
+
+</label>
 
             <button
 
