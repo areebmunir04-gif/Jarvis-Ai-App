@@ -74,7 +74,7 @@ app.post(
       const lowerMessage =
         message.toLowerCase();
 
-      // IMAGE GENERATION
+      // REALISTIC FLUX IMAGE GENERATION
 
       if (
 
@@ -113,24 +113,71 @@ app.post(
 
             .trim();
 
-      
-const realisticPrompt =
+        try {
 
-  `ultra realistic photo, 8k, DSLR, cinematic lighting, highly detailed, realistic skin texture, professional photography, ${prompt}`;
+          const response =
+            await axios.post(
 
-const imageUrl =
+              "https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-dev",
 
-  `https://image.pollinations.ai/prompt/${encodeURIComponent(realisticPrompt)}`;
+              {
+                inputs:
+                  `ultra realistic, cinematic lighting, 8k, highly detailed, professional photography, ${prompt}`,
+              },
 
+              {
 
-        return res.json({
+                headers: {
 
-          reply:
-            `Generated image for: ${prompt}`,
+                  Authorization:
+                    `Bearer ${process.env.HF_TOKEN}`,
 
-          image:
-            imageUrl,
-        });
+                  "Content-Type":
+                    "application/json",
+                },
+
+                responseType:
+                  "arraybuffer",
+              }
+            );
+
+          const base64Image =
+
+            Buffer.from(
+              response.data,
+              "binary"
+            ).toString(
+              "base64"
+            );
+
+          const imageUrl =
+
+            `data:image/png;base64,${base64Image}`;
+
+          return res.json({
+
+            reply:
+              `Generated realistic image for: ${prompt}`,
+
+            image:
+              imageUrl,
+          });
+
+        } catch (
+          error
+        ) {
+
+          console.log(
+            error
+          );
+
+          return res.status(500)
+            .json({
+
+              error:
+                "Image generation failed",
+            });
+        }
       }
 
       // OPEN YOUTUBE
