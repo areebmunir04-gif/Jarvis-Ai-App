@@ -6,8 +6,11 @@ const express =
 const cors =
   require("cors");
 
-const axios =
-  require("axios");
+const multer =
+  require("multer");
+
+const Groq =
+  require("groq-sdk");
 
 const {
 
@@ -16,20 +19,6 @@ const {
 } = require(
   "@google/generative-ai"
 );
-
-const multer =
-  require("multer");
-
-const Groq =
-  require("groq-sdk");
-
-const genAI =
-
-  new GoogleGenerativeAI(
-
-    process.env
-      .GEMINI_API_KEY
-  );
 
 const app =
   express();
@@ -49,6 +38,8 @@ app.use(
   express.json()
 );
 
+// GROQ
+
 const groq =
   new Groq({
 
@@ -57,9 +48,20 @@ const groq =
         .GROQ_API_KEY,
   });
 
+// GEMINI
+
+const genAI =
+
+  new GoogleGenerativeAI(
+
+    process.env
+      .GEMINI_API_KEY
+  );
+
 // HOME
 
 app.get(
+
   "/",
 
   (req, res) => {
@@ -70,7 +72,7 @@ app.get(
   }
 );
 
-// REAL GEMINI AI VISION
+// VISION
 
 app.post(
 
@@ -86,74 +88,61 @@ app.post(
   ) => {
 
     try {
-const model =
 
-  genAI.getGenerativeModel({
+      const model =
 
-    model:
-      "gemini-1.5-flash",
-  });
+        genAI.getGenerativeModel({
 
-const imagePart = {
+          model:
+            "gemini-1.5-flash",
+        });
 
-  inlineData: {
+      const imagePart = {
 
-    data:
-      req.file.buffer.toString(
-        "base64"
-      ),
+        inlineData: {
 
-    mimeType:
-      req.file.mimetype,
-  },
-};
+          data:
+            req.file.buffer.toString(
+              "base64"
+            ),
 
-const result =
+          mimeType:
+            req.file.mimetype,
+        },
+      };
 
-  await model.generateContent([
+      const result =
 
-    "Describe this image in detail",
+        await model.generateContent([
 
-    imagePart,
-  ]);
+          "Describe this image in detail",
 
-const response =
+          imagePart,
+        ]);
 
-  await result.response;
+      const response =
 
-const reply =
+        await result.response;
 
-  response.text();
+      const visionReply =
 
-return res.json({
+        response.text();
 
-  reply,
-});
+      return res.json({
 
-const reply =
-
-  response.data
-    .candidates[0]
-    .content.parts[0]
-    .text;
-
-return res.json({
-
-  reply,
-});
+        reply:
+          visionReply,
+      });
 
     } catch (
       error
     ) {
 
+      console.log(
+        error
+      );
 
-console.log(
-
-  error.response?.data ||
-
-  error.message
-);
-      res.status(500)
+      return res.status(500)
         .json({
 
           error:
@@ -222,18 +211,14 @@ app.post(
 
             .trim();
 
-        const realisticPrompt =
-
-          `ultra realistic photo, cinematic lighting, DSLR, highly detailed, 8k, realistic skin texture, professional photography, ${prompt}`;
-
         const imageUrl =
 
-          `https://image.pollinations.ai/prompt/${encodeURIComponent(realisticPrompt)}`;
+          `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}`;
 
         return res.json({
 
           reply:
-            `Generated realistic image for: ${prompt}`,
+            `Generated image for: ${prompt}`,
 
           image:
             imageUrl,
@@ -307,11 +292,13 @@ const PORT =
   5000;
 
 app.listen(
+
   PORT,
 
   () => {
 
     console.log(
+
       `Server running on ${PORT}`
     );
   }
