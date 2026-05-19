@@ -1,8 +1,8 @@
-
 "use client";
 
 import {
   useState,
+  useEffect,
   useRef,
 } from "react";
 
@@ -22,69 +22,120 @@ export default function Page() {
   const fileInputRef =
     useRef<any>(null);
 
+  // ======================
+  // LOAD CHAT STORAGE
+  // ======================
+
+  useEffect(() => {
+
+    const savedMessages =
+
+      localStorage.getItem(
+        "jarvis_messages"
+      );
+
+    if (savedMessages) {
+
+      setMessages(
+        JSON.parse(
+          savedMessages
+        )
+      );
+    }
+
+  }, []);
+
+  // ======================
+  // SAVE CHAT STORAGE
+  // ======================
+
+  useEffect(() => {
+
+    localStorage.setItem(
+
+      "jarvis_messages",
+
+      JSON.stringify(
+        messages
+      )
+    );
+
+  }, [messages]);
+
+  // ======================
   // SEND MESSAGE
+  // ======================
 
-  const sendMessage = async () => {
+  const sendMessage =
 
-    if (!message.trim()) return;
+    async () => {
 
-    const userMessage = {
+      if (
+        !message.trim()
+      ) return;
 
-      role: "user",
+      const userMessage = {
 
-      content: message,
-    };
+        role:
+          "user",
 
-    setMessages((prev) => [
-
-      ...prev,
-
-      userMessage,
-    ]);
-
-    try {
-
-      const res =
-        await axios.post(
-
-          "https://jarvis-ai-app-1.onrender.com/chat",
-
-          {
-            message,
-          }
-        );
-
-      const aiMessage = {
-
-        role: "assistant",
-
-  
-content:
-
-  `📷 IMAGE ANALYSIS:
-
-${res.data.reply}`,
-
-        image:
-          res.data.image || null,
+        content:
+          message,
       };
 
       setMessages((prev) => [
 
         ...prev,
 
-        aiMessage,
+        userMessage,
       ]);
 
-    } catch (error) {
+      try {
 
-      console.log(error);
-    }
+        const res =
+          await axios.post(
 
-    setMessage("");
-  };
+            "https://jarvis-ai-app-1.onrender.com/chat",
 
+            {
+              message,
+            }
+          );
+
+        const aiMessage = {
+
+          role:
+            "assistant",
+
+          content:
+            res.data.reply,
+
+          image:
+            res.data.image || null,
+        };
+
+        setMessages((prev) => [
+
+          ...prev,
+
+          aiMessage,
+        ]);
+
+      } catch (
+        error
+      ) {
+
+        console.log(
+          error
+        );
+      }
+
+      setMessage("");
+    };
+
+  // ======================
   // IMAGE UPLOAD
+  // ======================
 
   const handleImageUpload =
 
@@ -93,24 +144,31 @@ ${res.data.reply}`,
       const file =
         e.target.files?.[0];
 
-      if (!file) return;
+      if (!file)
+        return;
 
       const imageUrl =
 
-        URL.createObjectURL(file);
+        URL.createObjectURL(
+          file
+        );
 
-      setSelectedImage(imageUrl);
+      setSelectedImage(
+        imageUrl
+      );
 
       // USER IMAGE MESSAGE
 
       const userImageMessage = {
 
-        role: "user",
+        role:
+          "user",
 
         content:
           "📷 Image uploaded",
 
-        image: imageUrl,
+        image:
+          imageUrl,
       };
 
       setMessages((prev) => [
@@ -149,10 +207,14 @@ ${res.data.reply}`,
 
         const aiMessage = {
 
-          role: "assistant",
+          role:
+            "assistant",
 
           content:
-            res.data.reply,
+
+            `📷 IMAGE ANALYSIS:
+
+${res.data.reply}`,
         };
 
         setMessages((prev) => [
@@ -162,29 +224,50 @@ ${res.data.reply}`,
           aiMessage,
         ]);
 
-      } catch (error) {
+      } catch (
+        error
+      ) {
 
-        console.log(error);
+        console.log(
+          error
+        );
       }
     };
 
+  // ======================
+  // CLEAR CHAT
+  // ======================
+
+  const clearChat = () => {
+
+    localStorage.removeItem(
+      "jarvis_messages"
+    );
+
+    setMessages([]);
+  };
+
   return (
 
-    <div className="flex h-screen bg-black text-white">
+    <div className="flex h-screen bg-black text-white overflow-hidden">
 
       {/* SIDEBAR */}
 
       <div className="w-[250px] bg-[#111] border-r border-white/10 p-4 hidden md:block">
 
-        <h1 className="text-4xl font-bold text-cyan-400 mb-5">
+        <h1 className="text-4xl font-bold text-cyan-400 mb-6">
+
           JARVIS AI
+
         </h1>
 
         <button
 
-          className="bg-cyan-500 text-black px-5 py-3 rounded-2xl font-bold"
+          onClick={clearChat}
+
+          className="bg-red-500 px-5 py-3 rounded-2xl font-bold w-full"
         >
-          + New
+          Clear Chat
         </button>
       </div>
 
@@ -206,7 +289,10 @@ ${res.data.reply}`,
 
           {messages.map(
 
-            (msg, index) => (
+            (
+              msg,
+              index
+            ) => (
 
               <div
 
@@ -320,7 +406,9 @@ ${res.data.reply}`,
 
           <button
 
-            onClick={sendMessage}
+            onClick={
+              sendMessage
+            }
 
             className="bg-cyan-500 text-black px-7 py-4 rounded-2xl font-bold"
           >

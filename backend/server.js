@@ -1,3 +1,4 @@
+
 require("dotenv").config();
 
 const express =
@@ -18,7 +19,9 @@ const Groq =
 const app =
   express();
 
+// ======================
 // MIDDLEWARE
+// ======================
 
 app.use(
   cors()
@@ -28,7 +31,9 @@ app.use(
   express.json()
 );
 
+// ======================
 // MULTER
+// ======================
 
 const upload =
   multer({
@@ -37,7 +42,9 @@ const upload =
       multer.memoryStorage(),
   });
 
+// ======================
 // GROQ
+// ======================
 
 const groq =
   new Groq({
@@ -47,7 +54,9 @@ const groq =
         .GROQ_API_KEY,
   });
 
+// ======================
 // HOME
+// ======================
 
 app.get(
 
@@ -61,7 +70,9 @@ app.get(
   }
 );
 
+// ======================
 // CHAT ROUTE
+// ======================
 
 app.post(
 
@@ -78,10 +89,22 @@ app.post(
         message,
       } = req.body;
 
+      if (!message) {
+
+        return res.status(400)
+          .json({
+
+            error:
+              "Message missing",
+          });
+      }
+
       const lowerMessage =
         message.toLowerCase();
 
+      // ======================
       // IMAGE GENERATION
+      // ======================
 
       if (
 
@@ -134,7 +157,9 @@ app.post(
         });
       }
 
+      // ======================
       // NORMAL AI CHAT
+      // ======================
 
       const completion =
 
@@ -195,7 +220,9 @@ app.post(
   }
 );
 
+// ======================
 // VISION ROUTE
+// ======================
 
 app.post(
 
@@ -228,15 +255,11 @@ app.post(
           "base64"
         );
 
-      const prompt =
-
-        "Describe this image in detail. Read any text inside the image too.";
-
       const response =
 
         await axios.post(
 
-          `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
 
           {
 
@@ -249,7 +272,7 @@ app.post(
                   {
 
                     text:
-                      prompt,
+                      "Describe this image in detail. Read all text inside image.",
                   },
 
                   {
@@ -272,7 +295,7 @@ app.post(
       const reply =
 
         response.data
-          .candidates?.[0]
+          ?.candidates?.[0]
           ?.content?.parts?.[0]
           ?.text ||
 
@@ -288,8 +311,11 @@ app.post(
     ) {
 
       console.log(
+
+        "VISION ERROR:",
+
         error.response?.data ||
-        error
+        error.message
       );
 
       return res.status(500)
@@ -302,7 +328,9 @@ app.post(
   }
 );
 
+// ======================
 // TEST ROUTE
+// ======================
 
 app.get(
 
@@ -316,7 +344,9 @@ app.get(
   }
 );
 
+// ======================
 // SERVER
+// ======================
 
 const PORT =
 
