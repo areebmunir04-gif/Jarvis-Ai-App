@@ -303,3 +303,13 @@ app.listen(
     );
   }
 );
+app.get(
+  "/vision-test",
+
+  (req, res) => {
+
+    res.send(
+      "Vision route working 😎🔥"
+    );
+  }
+);
