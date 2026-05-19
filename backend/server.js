@@ -9,26 +9,16 @@ const cors =
 const multer =
   require("multer");
 
+const axios =
+  require("axios");
+
 const Groq =
   require("groq-sdk");
-
-const {
-
-  GoogleGenerativeAI
-
-} = require(
-  "@google/generative-ai"
-);
 
 const app =
   express();
 
-const upload =
-  multer({
-
-    storage:
-      multer.memoryStorage(),
-  });
+// MIDDLEWARE
 
 app.use(
   cors()
@@ -37,6 +27,15 @@ app.use(
 app.use(
   express.json()
 );
+
+// MULTER
+
+const upload =
+  multer({
+
+    storage:
+      multer.memoryStorage(),
+  });
 
 // GROQ
 
@@ -48,16 +47,6 @@ const groq =
         .GROQ_API_KEY,
   });
 
-// GEMINI
-
-const genAI =
-
-  new GoogleGenerativeAI(
-
-    process.env
-      .GEMINI_API_KEY
-  );
-
 // HOME
 
 app.get(
@@ -67,92 +56,12 @@ app.get(
   (req, res) => {
 
     res.send(
-      "Jarvis backend running"
+      "Jarvis backend running 😎🔥"
     );
   }
 );
 
-// VISION
-
-app.post(
-
-  "/vision",
-
-  upload.single(
-    "image"
-  ),
-
-  async (
-    req,
-    res
-  ) => {
-
-    try {
-
-      const model =
-
-        genAI.getGenerativeModel({
-
-          model:
-            "gemini-1.5-flash",
-        });
-
-      const imagePart = {
-
-        inlineData: {
-
-          data:
-            req.file.buffer.toString(
-              "base64"
-            ),
-
-          mimeType:
-            req.file.mimetype,
-        },
-      };
-
-      const result =
-
-        await model.generateContent([
-
-          "Describe this image in detail",
-
-          imagePart,
-        ]);
-
-      const response =
-
-        await result.response;
-
-      const visionReply =
-
-        response.text();
-
-      return res.json({
-
-        reply:
-          visionReply,
-      });
-
-    } catch (
-      error
-    ) {
-
-      console.log(
-        error
-      );
-
-      return res.status(500)
-        .json({
-
-          error:
-            "Vision failed",
-        });
-    }
-  }
-);
-
-// CHAT
+// CHAT ROUTE
 
 app.post(
 
@@ -225,7 +134,7 @@ app.post(
         });
       }
 
-      // AI CHAT
+      // NORMAL AI CHAT
 
       const completion =
 
@@ -263,7 +172,7 @@ app.post(
           .message
           .content;
 
-      res.json({
+      return res.json({
 
         reply,
       });
@@ -276,7 +185,7 @@ app.post(
         error
       );
 
-      res.status(500)
+      return res.status(500)
         .json({
 
           error:
@@ -285,6 +194,129 @@ app.post(
     }
   }
 );
+
+// VISION ROUTE
+
+app.post(
+
+  "/vision",
+
+  upload.single(
+    "image"
+  ),
+
+  async (
+    req,
+    res
+  ) => {
+
+    try {
+
+      if (!req.file) {
+
+        return res.status(400)
+          .json({
+
+            error:
+              "No image uploaded",
+          });
+      }
+
+      const imageBase64 =
+
+        req.file.buffer.toString(
+          "base64"
+        );
+
+      const prompt =
+
+        "Describe this image in detail. Read any text inside the image too.";
+
+      const response =
+
+        await axios.post(
+
+          `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+
+          {
+
+            contents: [
+
+              {
+
+                parts: [
+
+                  {
+
+                    text:
+                      prompt,
+                  },
+
+                  {
+
+                    inline_data: {
+
+                      mime_type:
+                        req.file.mimetype,
+
+                      data:
+                        imageBase64,
+                    },
+                  },
+                ],
+              },
+            ],
+          }
+        );
+
+      const reply =
+
+        response.data
+          .candidates?.[0]
+          ?.content?.parts?.[0]
+          ?.text ||
+
+        "No response";
+
+      return res.json({
+
+        reply,
+      });
+
+    } catch (
+      error
+    ) {
+
+      console.log(
+        error.response?.data ||
+        error
+      );
+
+      return res.status(500)
+        .json({
+
+          error:
+            "Vision failed",
+        });
+    }
+  }
+);
+
+// TEST ROUTE
+
+app.get(
+
+  "/vision-test",
+
+  (req, res) => {
+
+    res.send(
+      "Vision route working 😎🔥"
+    );
+  }
+);
+
+// SERVER
 
 const PORT =
 
@@ -300,16 +332,6 @@ app.listen(
     console.log(
 
       `Server running on ${PORT}`
-    );
-  }
-);
-app.get(
-  "/vision-test",
-
-  (req, res) => {
-
-    res.send(
-      "Vision route working 😎🔥"
     );
   }
 );
