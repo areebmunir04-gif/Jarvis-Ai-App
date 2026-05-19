@@ -1,234 +1,96 @@
 "use client";
 
 import {
+
   useState,
-  useEffect,
+
   useRef,
+
+  useEffect,
+
 } from "react";
 
 import axios from "axios";
 
-import {
-  motion,
-} from "framer-motion";
+export default function Page() {
 
-import {
-  FaMicrophone,
-  FaRobot,
-  FaUser,
-} from "react-icons/fa";
+  const [
 
-export default function Home() {
+    message,
 
-  const [message, setMessage] =
-    useState("");
+    setMessage,
 
-  const [loading, setLoading] =
-    useState(false);
+  ] = useState("");
 
-const [selectedImage,
-  setSelectedImage] =
-  useState<any>(null);
+  const [
 
-  const [chats, setChats] =
-    useState<any[]>([]);
+    chats,
 
-  const [currentChatId,
-    setCurrentChatId] =
-    useState<number | null>(
-      null
-    );
+    setChats,
 
-  const messagesEndRef =
-    useRef<HTMLDivElement>(
-      null
-    );
+  ] = useState<any[]>([
 
-  // LOAD CHATS
+    {
 
-  useEffect(() => {
+      id: 1,
 
-    const savedChats =
-      localStorage.getItem(
-        "jarvis_chats"
-      );
+      title: "New Chat",
 
-    if (savedChats) {
+      messages: [],
+    },
+  ]);
 
-      const parsed =
-        JSON.parse(
-          savedChats
-        );
+  const [
 
-      setChats(parsed);
+    currentChatId,
 
-      if (
-        parsed.length > 0
-      ) {
+    setCurrentChatId,
 
-        setCurrentChatId(
-          parsed[0].id
-        );
-      }
-    }
+  ] = useState(1);
 
-  }, []);
+  const [
 
-  // SAVE CHATS
+    selectedImage,
 
-  useEffect(() => {
+    setSelectedImage,
 
-    localStorage.setItem(
-      "jarvis_chats",
-      JSON.stringify(chats)
-    );
+  ] = useState<any>(null);
 
-    messagesEndRef.current
-      ?.scrollIntoView({
-        behavior: "smooth",
-      });
-
-  }, [chats]);
+  const fileInputRef =
+    useRef<any>(null);
 
   const currentChat =
+
     chats.find(
+
       (chat) =>
+
         chat.id ===
         currentChatId
     );
-
-  // NEW CHAT
-
-  const createNewChat = () => {
-
-    const newChat = {
-
-      id: Date.now(),
-
-      title:
-        "New Chat",
-
-      messages: [],
-    };
-
-    setChats((prev) => [
-      newChat,
-      ...prev,
-    ]);
-
-    setCurrentChatId(
-      newChat.id
-    );
-  };
 
   // SEND MESSAGE
 
-  const sendMessage = async (
-    customMessage: string = ""
-  ) => {
+  const sendMessage =
 
-    const finalMessage =
-      customMessage || message;
-
-    if (
-      !finalMessage ||
-      !currentChat
-    )
-      return;
-
-    const userMessage = {
-
-      role: "user",
-
-      content:
-        finalMessage,
-    };
-
-    const updatedMessages = [
-
-      ...currentChat.messages,
-
-      userMessage,
-    ];
-
-    setChats((prev) =>
-      prev.map((chat) =>
-
-        chat.id ===
-        currentChatId
-
-          ? {
-
-              ...chat,
-
-              title:
-                chat.messages
-                  .length === 0
-                  ? finalMessage
-                      .slice(
-                        0,
-                        20
-                      )
-                  : chat.title,
-
-              messages:
-                updatedMessages,
-            }
-
-          : chat
-      )
-    );
-
-    setMessage("");
-
-    try {
-
-      setLoading(true);
-
-      const res =
-        await axios.post(
-          "https://jarvis-ai-app-1.onrender.com/chat",
-          {
-
-            message:
-              finalMessage,
-
-            history:
-              updatedMessages,
-          }
-        );
-
-      let aiMessage;
+    async () => {
 
       if (
-        res.data.image
-      ) {
+        !message.trim()
+      )
+        return;
 
-        aiMessage = {
+      const userMessage = {
 
-          role:
-            "assistant",
+        role:
+          "user",
 
-          content:
-            res.data.reply,
-
-          image:
-            res.data.image,
-        };
-
-      } else {
-
-        aiMessage = {
-
-          role:
-            "assistant",
-
-          content:
-            res.data.reply,
-        };
-      }
+        content:
+          message,
+      };
 
       setChats((prev) =>
+
         prev.map((chat) =>
 
           chat.id ===
@@ -238,95 +100,19 @@ const [selectedImage,
 
                 ...chat,
 
-                messages: [
+                title:
+                  chat.title ===
+                  "New Chat"
 
-                  ...updatedMessages,
+                    ? message
 
-                  aiMessage,
-                ],
-              }
-
-            : chat
-        )
-      );
-
-      const speech =
-        new SpeechSynthesisUtterance(
-          res.data.reply
-        );
-
-      speech.lang =
-        "en-US";
-
-      window.speechSynthesis.speak(
-        speech
-      );
-
-    } catch (error) {
-
-      console.log(error);
-
-    } finally {
-
-      setLoading(false);
-    }
-  };
-
-// SEND IMAGE
-
-const sendImage =
-  async () => {
-
-    if (
-      !selectedImage
-    )
-      return;
-
-    const formData =
-      new FormData();
-
-    formData.append(
-      "image",
-      selectedImage
-    );
-
-    try {
-
-      setLoading(true);
-
-      const res =
-        await axios.post(
-
-          "https://jarvis-ai-app-1.onrender.com/vision",
-
-          formData
-        );
-
-      const aiMessage = {
-
-        role:
-          "assistant",
-
-        content:
-          res.data.reply,
-      };
-
-      setChats((prev:any) =>
-
-        prev.map((chat:any) =>
-
-          chat.id ===
-          currentChatId
-
-            ? {
-
-                ...chat,
+                    : chat.title,
 
                 messages: [
 
                   ...chat.messages,
 
-                  aiMessage,
+                  userMessage,
                 ],
               }
 
@@ -334,109 +120,218 @@ const sendImage =
         )
       );
 
-      setSelectedImage(
-        null
-      );
+      try {
 
-    } catch (
-      error
-    ) {
+        const res =
+          await axios.post(
 
-      console.log(
+            "https://jarvis-ai-app-1.onrender.com/chat",
+
+            {
+
+              message,
+            }
+          );
+
+        const aiMessage = {
+
+          role:
+            "assistant",
+
+          content:
+            res.data.reply,
+
+          image:
+            res.data.image ||
+            null,
+        };
+
+        setChats((prev) =>
+
+          prev.map((chat) =>
+
+            chat.id ===
+            currentChatId
+
+              ? {
+
+                  ...chat,
+
+                  messages: [
+
+                    ...chat.messages,
+
+                    aiMessage,
+                  ],
+                }
+
+              : chat
+          )
+        );
+
+      } catch (
         error
+      ) {
+
+        console.log(
+          error
+        );
+      }
+
+      setMessage("");
+    };
+
+  // IMAGE UPLOAD
+
+  const handleImageUpload =
+
+    async (e:any) => {
+
+      const file =
+
+        e.target.files?.[0];
+
+      if (!file)
+        return;
+
+      setSelectedImage(
+
+        URL.createObjectURL(
+          file
+        )
       );
 
-    } finally {
+      const formData =
+        new FormData();
 
-      setLoading(false);
-    }
-};
-
-  // VOICE INPUT
-
-  const startListening = () => {
-
-    const SpeechRecognition =
-      (window as any)
-        .SpeechRecognition ||
-
-      (window as any)
-        .webkitSpeechRecognition;
-
-    if (
-      !SpeechRecognition
-    ) {
-
-      alert(
-        "Speech Recognition not supported"
+      formData.append(
+        "image",
+        file
       );
 
-      return;
-    }
+      try {
 
-    const recognition =
-      new SpeechRecognition();
+        const res =
+          await axios.post(
 
-    recognition.lang =
-      "en-US";
+            "https://jarvis-ai-app-1.onrender.com/vision",
 
-    recognition.onresult = (
-      event: any
-    ) => {
+            formData,
 
-      const transcript =
-        event.results[0][0]
-          .transcript;
+            {
 
-      setMessage(
-        transcript
-      );
+              headers: {
 
-      sendMessage(
-        transcript
+                "Content-Type":
+                  "multipart/form-data",
+              },
+            }
+          );
+
+        const aiMessage = {
+
+          role:
+            "assistant",
+
+          content:
+            res.data.reply,
+        };
+
+        setChats((prev) =>
+
+          prev.map((chat) =>
+
+            chat.id ===
+            currentChatId
+
+              ? {
+
+                  ...chat,
+
+                  messages: [
+
+                    ...chat.messages,
+
+                    aiMessage,
+                  ],
+                }
+
+              : chat
+          )
+        );
+
+      } catch (
+        error
+      ) {
+
+        console.log(
+          error
+        );
+      }
+    };
+
+  // NEW CHAT
+
+  const createNewChat =
+
+    () => {
+
+      const newChat = {
+
+        id:
+          Date.now(),
+
+        title:
+          "New Chat",
+
+        messages: [],
+      };
+
+      setChats([
+
+        newChat,
+
+        ...chats,
+      ]);
+
+      setCurrentChatId(
+        newChat.id
       );
     };
 
-    recognition.start();
-  };
-
   return (
 
-    <main className="flex flex-col md:flex-row h-screen bg-[#0f0f0f] text-white overflow-hidden">
+    <div className="flex h-screen bg-black text-white overflow-hidden">
 
       {/* SIDEBAR */}
 
-      <aside className="w-full md:w-72 bg-[#171717] border-b md:border-b-0 md:border-r border-white/10 p-4 flex md:flex-col gap-3 overflow-x-auto md:overflow-visible">
+      <div className="w-[260px] bg-[#111] border-r border-white/10 p-3 hidden md:block">
 
-        <div className="flex items-center justify-between md:block w-full">
+        <h1 className="text-4xl font-bold text-cyan-400 mb-4">
+          JARVIS AI
+        </h1>
 
-          <h1 className="text-2xl md:text-3xl font-bold text-cyan-400">
-            JARVIS AI
-          </h1>
+        <button
 
-          <button
+          onClick={
+            createNewChat
+          }
 
-            onClick={
-              createNewChat
-            }
+          className="bg-cyan-400 text-black px-4 py-2 rounded-xl font-bold mb-5"
+        >
+          + New
+        </button>
 
-            className="bg-cyan-500 hover:bg-cyan-400 transition-all text-black font-bold px-4 py-2 rounded-xl"
-          >
-
-            + New
-
-          </button>
-
-        </div>
-
-        <div className="flex md:flex-col gap-2 overflow-x-auto md:overflow-y-auto mt-2 md:mt-6">
+        <div className="space-y-2 overflow-y-auto h-[80vh]">
 
           {chats.map(
             (chat) => (
 
-              <button
+              <div
 
-                key={chat.id}
+                key={
+                  chat.id
+                }
 
                 onClick={() =>
                   setCurrentChatId(
@@ -444,378 +339,199 @@ const sendImage =
                   )
                 }
 
-                className={`min-w-[140px] md:w-full text-left px-4 py-3 rounded-xl transition-all ${
+                className={`p-3 rounded-xl cursor-pointer truncate ${
                   currentChatId ===
                   chat.id
+
                     ? "bg-cyan-500 text-black"
-                    : "bg-[#1f1f1f] hover:bg-[#2a2a2a]"
+
+                    : "bg-[#1a1a1a]"
                 }`}
               >
-
                 {chat.title}
-
-              </button>
+              </div>
             )
           )}
-
         </div>
-
-      </aside>
+      </div>
 
       {/* MAIN */}
 
-      <section className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col">
 
-        <div className="h-14 md:h-16 border-b border-white/10 flex items-center px-4 md:px-6 text-lg md:text-xl font-semibold bg-[#111111]">
+        {/* HEADER */}
 
+        <div className="p-4 border-b border-white/10 text-3xl font-bold">
           ChatGPT Style Jarvis
-
         </div>
 
         {/* CHAT AREA */}
 
-        <div className="flex-1 overflow-y-auto px-3 md:px-4 py-4 md:py-6 space-y-5">
-
-          {!currentChat && (
-
-            <div className="h-full flex flex-col items-center justify-center text-center px-4">
-
-              <motion.h1
-
-                initial={{
-                  opacity: 0,
-                  y: 20,
-                }}
-
-                animate={{
-                  opacity: 1,
-                  y: 0,
-                }}
-
-                className="text-4xl md:text-6xl font-bold text-cyan-400"
-              >
-
-                JARVIS AI
-
-              </motion.h1>
-
-              <button
-
-                onClick={
-                  createNewChat
-                }
-
-                className="mt-8 bg-cyan-500 hover:bg-cyan-400 text-black font-bold px-8 py-4 rounded-2xl"
-              >
-
-                Start Chat
-
-              </button>
-
-            </div>
-          )}
+        <div className="flex-1 overflow-y-auto p-4 space-y-6">
 
           {currentChat?.messages.map(
+
             (
-              msg: any,
-              index: number
+              msg:any,
+
+              index:number
             ) => (
 
-              <motion.div
-
+              <div
                 key={index}
-
-                initial={{
-                  opacity: 0,
-                  y: 10,
-                }}
-
-                animate={{
-                  opacity: 1,
-                  y: 0,
-                }}
-
-                className={`flex gap-3 ${
-                  msg.role ===
-                  "user"
-                    ? "justify-end"
-                    : "justify-start"
-                }`}
               >
 
-                {msg.role ===
-                  "assistant" && (
-
-                  <div className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-cyan-500 flex items-center justify-center text-black flex-shrink-0">
-
-                    <FaRobot />
-
-                  </div>
-                )}
-
                 <div
-                  className={`max-w-[85%] md:max-w-[75%] p-3 md:p-4 rounded-2xl text-sm md:text-lg ${
+
+                  className={`flex ${
                     msg.role ===
                     "user"
-                      ? "bg-cyan-500 text-black"
-                      : "bg-[#1f1f1f] border border-white/10"
+
+                      ? "justify-end"
+
+                      : "justify-start"
                   }`}
                 >
 
-                  <div>
+                  <div
 
-                    <div>
-                      {msg.content}
-                    </div>
+                    className={`max-w-[85%] px-5 py-4 rounded-3xl text-sm md:text-base ${
+                      msg.role ===
+                      "user"
+
+                        ? "bg-cyan-500 text-black"
+
+                        : "bg-[#1f1f1f] border border-white/10"
+                    }`}
+                  >
+                    {msg.content}
 
                     {msg.image && (
 
                       <img
 
-                        src={msg.image}
+                        src={
+                          msg.image
+                        }
 
-                        alt="AI Generated"
+                        alt="AI"
 
-                        className="mt-4 rounded-2xl w-full border border-white/10"
+                        className="mt-3 rounded-2xl max-w-full"
                       />
                     )}
-
                   </div>
-
                 </div>
-
-                {msg.role ===
-                  "user" && (
-
-                  <div className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-white flex items-center justify-center text-black flex-shrink-0">
-
-                    <FaUser />
-
-                  </div>
-                )}
-
-              </motion.div>
+              </div>
             )
           )}
-
-          {loading && (
-
-            <div className="flex gap-3">
-
-              <div className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-cyan-500 flex items-center justify-center text-black">
-
-                <FaRobot />
-
-              </div>
-
-              <div className="bg-[#1f1f1f] border border-white/10 px-4 py-3 rounded-2xl text-sm md:text-base">
-
-                Jarvis thinking...
-
-              </div>
-
-            </div>
-          )}
-
-          <div ref={messagesEndRef} />
-
         </div>
 
-        {/* INPUT */}
+        {/* IMAGE PREVIEW */}
 
-        <div className="border-t border-white/10 p-3 md:p-4 bg-[#111111]">
+        {selectedImage && (
 
-{selectedImage && (
+          <div className="px-4">
 
-  <img
+            <img
 
-    src={
-      URL.createObjectURL(
-        selectedImage
-      )
-    }
-
-    alt="preview"
-
-    className="w-32 rounded-2xl mb-3 border border-white/10"
-  />
-)}
-
-          <div className="flex gap-2 md:gap-3">
-
-<input
-
-  type="file"
-
-  accept="image/*"
-
-  id="imageUpload"
-
-  className="hidden"
-
-  onChange={async (e:any) => {
-
-    const file =
-      e.target.files?.[0];
-
-    if (!file)
-      return;
-
-    const formData =
-      new FormData();
-
-    formData.append(
-      "image",
-      file
-    );
-
-    formData.append(
-
-      "prompt",
-
-      "Describe this image"
-    );
-
-    try {
-
-      const res =
-        await axios.post(
-
-          "https://jarvis-ai-app-1.onrender.com/vision",
-
-          formData,
-
-          {
-
-            headers: {
-
-              "Content-Type":
-                "multipart/form-data",
-            },
-          }
-        );
-
-      const aiMessage = {
-
-        role:
-          "assistant",
-
-        content:
-          res.data.reply,
-      };
-
-      setChats((prev:any) =>
-
-        prev.map((chat:any) =>
-
-          chat.id ===
-          currentChatId
-
-            ? {
-
-                ...chat,
-
-                messages: [
-
-                  ...chat.messages,
-
-                  aiMessage,
-                ],
+              src={
+                selectedImage
               }
 
-            : chat
-        )
-      );
+              alt="preview"
 
-    } catch (
-      error
-    ) {
-
-      console.log(
-        error
-      );
-    }
-  }}
-/>
-
-<label
-
-  htmlFor="imageUpload"
-
-  className="bg-[#1f1f1f] hover:bg-[#2a2a2a] transition-all w-12 h-12 rounded-2xl flex items-center justify-center cursor-pointer text-3xl"
->
-
-  +
-
-</label>
-           
-            <input
-
-              type="text"
-
-              placeholder="Message Jarvis..."
-
-              value={message}
-
-              onChange={(e) =>
-                setMessage(
-                  e.target.value
-                )
-              }
-
-              onKeyDown={(e) => {
-
-                if (
-                  e.key ===
-                  "Enter"
-                ) {
-
-                  sendMessage("");
-                }
-              }}
-
-              className="flex-1 bg-[#1f1f1f] border border-white/10 rounded-2xl px-4 py-3 md:px-5 md:py-4 outline-none text-white text-sm md:text-base"
+              className="w-24 h-24 object-cover rounded-xl"
             />
-          <label
-
-  htmlFor="imageUpload"
-
-  className="bg-[#1f1f1f] hover:bg-[#2a2a2a] transition-all w-12 h-12 rounded-2xl flex items-center justify-center cursor-pointer text-3xl">
-  +
-</label>
-
-            <button
-
-              onClick={
-                startListening
-              }
-
-              className="bg-cyan-500 hover:bg-cyan-400 transition-all text-black px-4 md:px-5 rounded-2xl text-lg md:text-xl"
-            >
-
-              <FaMicrophone />
-
-            </button>
-
-            <button
-
-              onClick={() =>
-                sendMessage("")
-              }
-
-              className="bg-cyan-500 hover:bg-cyan-400 transition-all text-black font-bold px-5 md:px-8 rounded-2xl text-sm md:text-base"
-            >
-
-              Send
-
-            </button>
-
           </div>
+        )}
 
+        {/* INPUT AREA */}
+
+        <div className="p-3 border-t border-white/10 flex items-center gap-2">
+
+          {/* PLUS BUTTON */}
+
+          <button
+
+            onClick={() =>
+              fileInputRef.current.click()
+            }
+
+            className="w-12 h-12 rounded-2xl bg-[#1f1f1f] text-3xl"
+          >
+            +
+          </button>
+
+          {/* HIDDEN INPUT */}
+
+          <input
+
+            type="file"
+
+            ref={
+              fileInputRef
+            }
+
+            className="hidden"
+
+            onChange={
+              handleImageUpload
+            }
+          />
+
+          {/* MESSAGE INPUT */}
+
+          <input
+
+            type="text"
+
+            placeholder="Message Jarvis..."
+
+            value={message}
+
+            onChange={(e) =>
+              setMessage(
+                e.target.value
+              )
+            }
+
+            onKeyDown={(e) => {
+
+              if (
+                e.key ===
+                "Enter"
+              ) {
+
+                sendMessage();
+              }
+            }}
+
+            className="flex-1 bg-[#1f1f1f] border border-white/10 rounded-2xl px-4 py-4 outline-none"
+          />
+
+          {/* MIC */}
+
+          <button
+
+            className="w-12 h-12 rounded-2xl bg-cyan-500 text-black text-xl"
+          >
+            🎤
+          </button>
+
+          {/* SEND */}
+
+          <button
+
+            onClick={
+              sendMessage
+            }
+
+            className="bg-cyan-500 text-black px-6 py-4 rounded-2xl font-bold"
+          >
+            Send
+          </button>
         </div>
-
-      </section>
-
-    </main>
+      </div>
+    </div>
   );
 }
