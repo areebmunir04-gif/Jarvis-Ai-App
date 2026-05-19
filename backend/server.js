@@ -9,11 +9,27 @@ const cors =
 const axios =
   require("axios");
 
+const {
+
+  GoogleGenerativeAI
+
+} = require(
+  "@google/generative-ai"
+);
+
 const multer =
   require("multer");
 
 const Groq =
   require("groq-sdk");
+
+const genAI =
+
+  new GoogleGenerativeAI(
+
+    process.env
+      .GEMINI_API_KEY
+  );
 
 const app =
   express();
@@ -70,51 +86,49 @@ app.post(
   ) => {
 
     try {
+const model =
 
-  
-const imageBase64 =
+  genAI.getGenerativeModel({
 
-  req.file.buffer.toString(
-    "base64"
-  );
+    model:
+      "gemini-1.5-flash",
+  });
+
+const imagePart = {
+
+  inlineData: {
+
+    data:
+      req.file.buffer.toString(
+        "base64"
+      ),
+
+    mimeType:
+      req.file.mimetype,
+  },
+};
+
+const result =
+
+  await model.generateContent([
+
+    "Describe this image in detail",
+
+    imagePart,
+  ]);
 
 const response =
 
-  await axios.post(
+  await result.response;
 
-  
-`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${process.env.GEMINI_API_KEY} `,
+const reply =
 
-    {
+  response.text();
 
-      contents: [
+return res.json({
 
-        {
-
-          parts: [
-
-            {
-
-              text:
-                "Describe this image in detail",
-            },
-
-            {
-
-              inline_data: {
-
-                mime_type:
-                  req.file.mimetype,
-
-                data:
-                  imageBase64,
-              },
-            },
-          ],
-        },
-      ],
-    }
-  );
+  reply,
+});
 
 const reply =
 
