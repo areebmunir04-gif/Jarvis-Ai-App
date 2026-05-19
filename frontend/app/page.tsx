@@ -58,8 +58,12 @@ export default function Page() {
 
         role: "assistant",
 
-        content:
-          res.data.reply,
+  
+content:
+
+  `📷 IMAGE ANALYSIS:
+
+${res.data.reply}`,
 
         image:
           res.data.image || null,
